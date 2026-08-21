@@ -16,3 +16,6 @@ coverage
 .DS_Store
 Thumbs.db
 .vscode
+
+# Documentação técnica mantida somente no ambiente local
+/README.md
