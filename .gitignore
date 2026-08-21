@@ -1,8 +1,18 @@
+# Dependências
 node_modules
-# Keep environment variables out of version control
-dist
-.env
-*.tsbuildinfo
 
-generated/prisma
+# Builds e arquivos gerados
 dist
+generated/prisma
+*.tsbuildinfo
+coverage
+
+# Variáveis locais e segredos
+.env
+.env.local
+.env.*.local
+
+# Sistema e editores
+.DS_Store
+Thumbs.db
+.vscode
