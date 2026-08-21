@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { BarChart3, Landmark, LogOut, Menu, Plus, Tags, X } from "lucide-react";
+import { BarChart3, FileBarChart, Landmark, LogOut, Menu, Plus, Tags, X } from "lucide-react";
 import { AuthScreen } from "./components/AuthScreen";
 import { CategoriesView } from "./components/CategoriesView";
 import { DashboardView } from "./components/DashboardView";
 import { TransactionModal } from "./components/TransactionModal";
 import { TransactionsView } from "./components/TransactionsView";
+import { ReportsView } from "./components/ReportsView";
 import { ApiError, api } from "./lib/api";
 import type { Category, Summary, Transaction, User } from "./types";
 
-type View = "dashboard" | "transactions" | "categories";
+type View = "dashboard" | "transactions" | "categories" | "reports";
 const currentMonth = new Date().toISOString().slice(0, 7);
 
 function monthRange(month: string) {
@@ -102,6 +103,7 @@ export function App() {
     { id: "dashboard", label: "Visão geral", icon: BarChart3 },
     { id: "transactions", label: "Lançamentos", icon: Landmark },
     { id: "categories", label: "Categorias", icon: Tags },
+    { id: "reports", label: "Relatórios", icon: FileBarChart },
   ] as const;
   return (
     <div className="app-shell">
@@ -182,6 +184,9 @@ export function App() {
         )}
         {view === "categories" && (
           <CategoriesView categories={categories} onChanged={loadData} />
+        )}
+        {view === "reports" && (
+          <ReportsView categories={categories} user={user} />
         )}
       </main>
       {modal && (

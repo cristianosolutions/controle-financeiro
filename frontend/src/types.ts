@@ -9,3 +9,9 @@ export interface Transaction {
 export interface Summary {
   month: string; income: number; expense: number; balance: number; transactionCount: number; recent: Transaction[];
 }
+export interface FinancialReport {
+  period: { from: string; to: string };
+  totals: { income: number; expense: number; balance: number; count: number };
+  categories: Array<{ id: string; name: string; color: string; type: TransactionType; total: number; count: number }>;
+  items: Transaction[];
+}
