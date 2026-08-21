@@ -50,3 +50,12 @@ input:focus,select:focus,textarea:focus { border-color:#818cf8; box-shadow:0 0 0
 
 @media (max-width: 950px) { .auth-page { grid-template-columns:1fr; }.auth-hero { display:none; }.auth-panel { min-height:100vh;padding:28px; }.mobile-brand { display:flex;align-items:center;gap:10px;font:800 1.2rem "Manrope";margin-bottom:70px; }.app-shell { grid-template-columns:1fr; }.sidebar { position:fixed;left:-280px;width:260px;transition:.25s;box-shadow:16px 0 50px #1115; }.sidebar.open { left:0; }.mobile-close { display:block;margin-left:auto;border:0;background:none;color:white; }.sidebar-top { display:flex;align-items:center; }.mobile-header { height:62px;padding:0 20px;background:var(--navy);color:white;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:15; }.mobile-header button { border:0;background:none;color:white; }.summary-grid { grid-template-columns:1fr 1fr; }.summary-card:first-child { grid-column:1/-1; }.dashboard-grid { grid-template-columns:1fr; }.content-section { padding-top:34px; } }
 @media (max-width: 680px) { .section-heading { align-items:flex-start;flex-direction:column;margin-bottom:26px; }.heading-actions { width:100%; }.heading-actions>* { flex:1; }.summary-grid { grid-template-columns:1fr; }.summary-card:first-child { grid-column:auto; }.category-grid { grid-template-columns:1fr; }.inline-card { grid-template-columns:1fr; }.transaction-table { grid-template-columns:1fr auto;padding:15px; }.transaction-table>span:nth-child(2),.transaction-table>span:nth-child(3) { display:none; }.transaction-table .row-actions { display:none; }.table-header { display:none; }.form-grid { grid-template-columns:1fr; }.modal-card { padding:22px; }.auth-card h2 { font-size:1.7rem; }.recent-item { grid-template-columns:8px 1fr; }.recent-item>b { grid-column:2; }.toast { left:20px;right:20px;top:76px;text-align:center; } }
+
+@media (max-width: 680px) {
+  .heading-actions { flex-direction:column; }
+  .heading-actions > * { width:100%; flex:none; }
+  .month-selector { width:100%; min-width:0; }
+  .month-selector select { min-width:0; flex:1; }
+  .month-selector select:last-child { flex:.7; }
+  .heading-actions .primary-button { width:100%; }
+}
