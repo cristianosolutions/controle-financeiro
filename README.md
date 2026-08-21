@@ -20,6 +20,46 @@ O sistema permite:
 
 Cada conta possui dados separados. Um usuário não pode visualizar categorias ou lançamentos pertencentes a outro usuário.
 
+## Conheça a interface
+
+### Login
+
+A tela inicial permite entrar em uma conta existente ou acessar o cadastro de um novo usuário.
+
+![Tela de login do Fluxo](docs/screenshots/01-login.png)
+
+### Dashboard
+
+A visão geral reúne saldo, receitas, despesas, balanço mensal e os lançamentos mais recentes. O período pode ser alterado pelos seletores de mês e ano.
+
+![Dashboard mensal do Fluxo](docs/screenshots/02-dashboard.png)
+
+### Lançamentos
+
+O histórico apresenta descrição, categoria, data e valor de cada movimentação, além dos controles de edição e exclusão.
+
+![Histórico de lançamentos](docs/screenshots/03-lancamentos.png)
+
+### Categorias
+
+As categorias organizam as movimentações e utilizam cores para facilitar a identificação visual.
+
+![Gerenciamento de categorias](docs/screenshots/04-categorias.png)
+
+### Novo lançamento
+
+O formulário permite registrar uma receita ou despesa com descrição, valor, data, categoria e observação opcional.
+
+![Formulário de novo lançamento](docs/screenshots/05-novo-lancamento.png)
+
+### Versão para celular
+
+A interface adapta os elementos para telas menores, mantendo o acesso aos mesmos recursos.
+
+<p align="center">
+  <img src="docs/screenshots/06-versao-mobile.png" width="360" alt="Tela de login do Fluxo em um celular" />
+</p>
+
 ## Como navegar pelo sistema
 
 Depois de entrar, o menu principal apresenta três áreas:

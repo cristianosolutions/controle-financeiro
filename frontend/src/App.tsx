@@ -14,7 +14,10 @@ const currentMonth = new Date().toISOString().slice(0, 7);
 function monthRange(month: string) {
   const [year, monthNumber] = month.split("-").map(Number);
   const lastDay = new Date(Date.UTC(year!, monthNumber!, 0)).getUTCDate();
-  return { from: `${month}-01`, to: `${month}-${String(lastDay).padStart(2, "0")}` };
+  return {
+    from: `${month}-01`,
+    to: `${month}-${String(lastDay).padStart(2, "0")}`,
+  };
 }
 
 export function App() {
@@ -129,10 +132,7 @@ export function App() {
             </button>
           ))}
         </nav>
-        <button
-          className="sidebar-add"
-          onClick={() => setModal("new")}
-        >
+        <button className="sidebar-add" onClick={() => setModal("new")}>
           <Plus size={18} /> Novo lançamento
         </button>
         <div className="user-block">
