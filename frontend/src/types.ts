@@ -5,7 +5,8 @@ export const paymentMethodLabels: Record<PaymentMethod, string> = {
   BANK_TRANSFER: "Transferência bancária", BOLETO: "Boleto", OTHER: "Outra",
 };
 
-export interface User { id: string; name: string; email: string }
+export interface User { id: string; name: string; email: string; role: "USER" | "ADMIN"; isActive: boolean }
+export interface AdminUser extends User { createdAt: string; updatedAt: string; _count?: { transactions: number } }
 export interface Category { id: string; name: string; color: string; type: TransactionType | null; _count?: { transactions: number } }
 export interface Transaction {
   id: string; description: string; amount: string; type: TransactionType; date: string;
