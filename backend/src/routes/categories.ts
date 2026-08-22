@@ -5,7 +5,10 @@ import { prisma } from "../lib/prisma.js";
 
 export const categoriesRouter = Router();
 const categorySchema = z.object({
-  name: z.string().trim().min(1).max(50),
+  name: z.string().trim().min(1).max(50).refine((name) => {
+    const normalized = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    return !["cartao", "cartao de credito", "credito", "debito", "pix", "dinheiro", "boleto"].includes(normalized);
+  }, "Use categorias de consumo, como Alimentação, Saúde ou Lazer"),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#64748b"),
   type: z.enum(["INCOME", "EXPENSE"]).nullish().transform((value) => value ?? null),
 });
