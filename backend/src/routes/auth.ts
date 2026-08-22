@@ -16,7 +16,7 @@ authRouter.post("/register", authRateLimit, async (request, response) => {
   const passwordHash = await bcrypt.hash(data.password, 12);
   const user = await prisma.user.create({
     data: { name: data.name, email: data.email, passwordHash },
-    select: { id: true, name: true, email: true, createdAt: true },
+    select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
   });
   response.status(201).json(user);
 });
@@ -25,14 +25,15 @@ authRouter.post("/login", authRateLimit, async (request, response) => {
   const data = credentialsSchema.parse(request.body);
   const user = await prisma.user.findUnique({ where: { email: data.email } });
   if (!user || !(await bcrypt.compare(data.password, user.passwordHash))) throw new AppError("E-mail ou senha inválidos", 401);
+  if (!user.isActive) throw new AppError("Usuário desativado. Procure um administrador", 403);
   const token = jwt.sign({}, env.JWT_SECRET, { subject: user.id, expiresIn: "7d" });
-  response.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+  response.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, isActive: user.isActive } });
 });
 
 authRouter.get("/me", authenticate, async (request, response) => {
   const user = await prisma.user.findUnique({
     where: { id: request.userId! },
-    select: { id: true, name: true, email: true, createdAt: true },
+    select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
   });
   if (!user) throw new AppError("Usuário não encontrado", 404);
   response.json(user);

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { BarChart3, FileBarChart, Landmark, LogOut, Menu, Plus, Tags, X } from "lucide-react";
+import { BarChart3, FileBarChart, Landmark, LogOut, Menu, Plus, Tags, Users, X } from "lucide-react";
+import { AdminUsersView } from "./components/AdminUsersView";
 import { AuthScreen } from "./components/AuthScreen";
 import { CategoriesView } from "./components/CategoriesView";
 import { DashboardView } from "./components/DashboardView";
@@ -9,7 +10,7 @@ import { ReportsView } from "./components/ReportsView";
 import { ApiError, api } from "./lib/api";
 import type { Category, Summary, Transaction, User } from "./types";
 
-type View = "dashboard" | "transactions" | "categories" | "reports";
+type View = "dashboard" | "transactions" | "categories" | "reports" | "users";
 const currentMonth = new Date().toISOString().slice(0, 7);
 
 function monthRange(month: string) {
@@ -104,6 +105,7 @@ export function App() {
     { id: "transactions", label: "Lançamentos", icon: Landmark },
     { id: "categories", label: "Categorias", icon: Tags },
     { id: "reports", label: "Relatórios", icon: FileBarChart },
+    ...(user.role === "ADMIN" ? [{ id: "users" as const, label: "Usuários", icon: Users }] : []),
   ] as const;
   return (
     <div className="app-shell">
@@ -188,6 +190,7 @@ export function App() {
         {view === "reports" && (
           <ReportsView categories={categories} user={user} />
         )}
+        {view === "users" && user.role === "ADMIN" && <AdminUsersView currentUser={user} />}
       </main>
       {modal && (
         <TransactionModal
