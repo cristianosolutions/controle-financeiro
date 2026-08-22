@@ -1,5 +1,5 @@
 import { ArrowDownRight, ArrowUpRight, CalendarDays, Plus, ReceiptText, Wallet } from "lucide-react";
-import type { Summary } from "../types";
+import { paymentMethodLabels, type Summary } from "../types";
 
 interface Props { summary: Summary | null; month: string; onMonth: (month: string) => void; onNew: () => void }
 
@@ -36,7 +36,7 @@ export function DashboardView({ summary, month, onMonth, onNew }: Props) {
     <div className="dashboard-grid">
       <article className="panel insight-panel"><div><p className="eyebrow">Balanço mensal</p><h2>{summary?.balance && summary.balance >= 0 ? "Você fechou no positivo" : "Atenção ao seu balanço"}</h2><p className="muted">{summary?.transactionCount ?? 0} lançamentos registrados neste mês.</p></div><div className="balance-visual"><span style={{ width: `${summary?.income ? Math.min(100, (summary.expense / summary.income) * 100) : 0}%` }} /><small>Despesas representam {summary?.income ? Math.round((summary.expense / summary.income) * 100) : 0}% das receitas</small></div></article>
       <article className="panel recent-panel"><div className="panel-title"><div><p className="eyebrow">Atividade</p><h2>Últimos lançamentos</h2></div><ReceiptText /></div>
-        <div className="recent-list">{summary?.recent.map((item) => <div className="recent-item" key={item.id}><i style={{ background: item.category.color }} /><div><strong>{item.description}</strong><span>{item.category.name} · {new Date(item.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}</span></div><b className={item.type === "INCOME" ? "money income" : "money expense"}>{item.type === "INCOME" ? "+" : "−"}{currency.format(Number(item.amount))}</b></div>)}{!summary?.recent.length && <div className="empty-state mini"><p>Seu mês ainda está em branco.</p></div>}</div>
+        <div className="recent-list">{summary?.recent.map((item) => <div className="recent-item" key={item.id}><i style={{ background: item.category.color }} /><div><strong>{item.description}</strong><span>{item.category.name}{item.paymentMethod ? ` · ${paymentMethodLabels[item.paymentMethod]}` : ""}{item.cardName ? ` · ${item.cardName}` : ""} · {new Date(item.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}</span></div><b className={item.type === "INCOME" ? "money income" : "money expense"}>{item.type === "INCOME" ? "+" : "−"}{currency.format(Number(item.amount))}</b></div>)}{!summary?.recent.length && <div className="empty-state mini"><p>Seu mês ainda está em branco.</p></div>}</div>
       </article>
     </div>
   </section>;

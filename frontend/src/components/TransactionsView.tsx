@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
-import type { Category, Transaction, TransactionType } from "../types";
+import { paymentMethodLabels, type Category, type Transaction, type TransactionType } from "../types";
 
 interface Props {
   items: Transaction[]; categories: Category[]; page: number; pages: number;
@@ -15,7 +15,7 @@ export function TransactionsView({ items, categories, page, pages, onPage, onNew
     <div className="table-card"><div className="transaction-table table-header"><span>Descrição</span><span>Categoria</span><span>Data</span><span>Valor</span><span /></div>
       {items.map((item) => <div className="transaction-table" key={item.id}>
         <span className="transaction-name"><i className={item.type === "INCOME" ? "dot income" : "dot expense"} />{item.description}</span>
-        <span><em className="category-pill" style={{ color: item.category.color, background: `${item.category.color}14` }}>{item.category.name}</em></span>
+        <span className="category-info"><em className="category-pill" style={{ color: item.category.color, background: `${item.category.color}14` }}>{item.category.name}</em>{item.paymentMethod && <small>{paymentMethodLabels[item.paymentMethod]}{item.cardName ? ` · ${item.cardName}` : ""}</small>}</span>
         <span className="muted">{new Date(item.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}</span>
         <strong className={item.type === "INCOME" ? "money income" : "money expense"}>{item.type === "INCOME" ? "+ " : "− "}{currency.format(Number(item.amount))}</strong>
         <span className="row-actions"><button className="icon-button" onClick={() => onEdit(item)}><Pencil size={16} /></button><button className="icon-button danger" onClick={() => remove(item.id)}><Trash2 size={16} /></button></span>

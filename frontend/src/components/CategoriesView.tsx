@@ -4,13 +4,13 @@ import { api } from "../lib/api";
 import type { Category, TransactionType } from "../types";
 
 interface Props { categories: Category[]; onChanged: () => void }
-const colors = ["#4f46e5", "#0891b2", "#16a34a", "#ea580c", "#dc2626", "#9333ea", "#64748b"];
 
 export function CategoriesView({ categories, onChanged }: Props) {
   const [adding, setAdding] = useState(false); const [error, setError] = useState("");
+  const [selectedColor, setSelectedColor] = useState("#4f46e5");
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget).entries());
-    try { await api("/categories", { method: "POST", body: JSON.stringify({ ...data, type: data.type || null }) }); setAdding(false); onChanged(); }
+    try { await api("/categories", { method: "POST", body: JSON.stringify({ ...data, type: data.type || null }) }); setAdding(false); setSelectedColor("#4f46e5"); onChanged(); }
     catch (err) { setError(err instanceof Error ? err.message : "Erro inesperado"); }
   }
   async function remove(id: string) {
@@ -23,7 +23,7 @@ export function CategoriesView({ categories, onChanged }: Props) {
     {adding && <form className="inline-card" onSubmit={submit}>
       <label>Nome<input name="name" placeholder="Ex: Moradia" required /></label>
       <label>Tipo<select name="type"><option value="">Receita e despesa</option><option value={"EXPENSE" satisfies TransactionType}>Despesa</option><option value={"INCOME" satisfies TransactionType}>Receita</option></select></label>
-      <fieldset className="color-field"><legend>Cor</legend><div className="color-palette">{colors.map((color, index) => <label className="color-option" key={color} title={`Selecionar cor ${index + 1}`}><input type="radio" name="color" value={color} defaultChecked={index === 0} /><span style={{ backgroundColor: color }} /><i>Cor {index + 1}</i></label>)}</div></fieldset>
+      <fieldset className="color-field"><legend>Cor</legend><label className="color-picker" title="Escolher cor"><input type="color" name="color" value={selectedColor} onChange={(event) => setSelectedColor(event.target.value)} aria-label="Escolher cor da categoria" /><span className="color-wheel"><i style={{ background: selectedColor }} /></span></label></fieldset>
       <button className="primary-button compact">Adicionar</button>
     </form>}
     {error && <div className="form-error spaced">{error}</div>}
