@@ -115,7 +115,7 @@ export function App() {
             <span className="brand-mark">
               <Landmark size={20} />
             </span>{" "}
-            fluxo
+            Control Finance
           </div>
           <button className="mobile-close" onClick={() => setMenuOpen(false)}>
             <X />
@@ -155,7 +155,7 @@ export function App() {
           <button onClick={() => setMenuOpen(true)}>
             <Menu />
           </button>
-          <strong>fluxo</strong>
+          <strong>Control Finance</strong>
           <button onClick={() => setModal("new")}>
             <Plus />
           </button>
