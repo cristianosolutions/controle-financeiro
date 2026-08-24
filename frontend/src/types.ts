@@ -57,6 +57,18 @@ export interface Summary {
   expense: number;
   balance: number;
   transactionCount: number;
+  previousMonth: {
+    income: number;
+    expense: number;
+    balance: number;
+  };
+  trend: Array<{ day: number; income: number; expense: number }>;
+  expenseCategories: Array<{
+    id: string;
+    name: string;
+    color: string;
+    total: number;
+  }>;
   recent: Transaction[];
 }
 export interface FinancialReport {
