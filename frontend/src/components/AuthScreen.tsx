@@ -1,5 +1,14 @@
 import { useState, type FormEvent } from "react";
-import { ArrowRight, Eye, EyeOff, Landmark } from "lucide-react";
+import {
+  ArrowRight,
+  CircleDollarSign,
+  Eye,
+  EyeOff,
+  Landmark,
+  PiggyBank,
+  TrendingUp,
+  WalletCards,
+} from "lucide-react";
 import { api } from "../lib/api";
 import type { User } from "../types";
 
@@ -8,6 +17,7 @@ interface Props {
 }
 
 export function AuthScreen({ onAuthenticated }: Props) {
+  const currentYear = new Date().getFullYear();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -48,6 +58,14 @@ export function AuthScreen({ onAuthenticated }: Props) {
   return (
     <main className="auth-page">
       <section className="auth-hero">
+        <div className="financial-decoration" aria-hidden="true">
+          <span className="finance-orbit orbit-one" />
+          <span className="finance-orbit orbit-two" />
+          <span className="finance-icon piggy"><PiggyBank /></span>
+          <span className="finance-icon dollar"><CircleDollarSign /></span>
+          <span className="finance-icon wallet"><WalletCards /></span>
+          <span className="finance-icon growth"><TrendingUp /></span>
+        </div>
         <div className="brand">
           <span className="brand-mark">
             <Landmark size={20} />
@@ -65,6 +83,9 @@ export function AuthScreen({ onAuthenticated }: Props) {
         <div className="hero-quote">
           <strong>“Controle não é restrição.</strong>
           <br />É liberdade para escolher.”
+        </div>
+        <div className="developer-credit">
+          © {currentYear} · Desenvolvido por <strong>CristianoSolutions</strong>
         </div>
       </section>
       <section className="auth-panel">
@@ -143,6 +164,9 @@ export function AuthScreen({ onAuthenticated }: Props) {
             >
               {mode === "login" ? "Cadastre-se" : "Entrar"}
             </button>
+          </p>
+          <p className="developer-credit mobile-credit">
+            © {currentYear} · Desenvolvido por <strong>CristianoSolutions</strong>
           </p>
         </div>
       </section>
