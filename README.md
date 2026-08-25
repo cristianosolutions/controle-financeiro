@@ -59,6 +59,14 @@ O projeto é dividido em uma API REST e uma interface React, com autenticação 
 
 ![Formulário de novo lançamento](docs/screenshots/05-novo-lancamento.png)
 
+### Relatórios
+
+![Relatórios financeiros com filtros e exportação](docs/screenshots/07-relatorios.png)
+
+### Administração de usuários
+
+![Gerenciamento administrativo de usuários](docs/screenshots/08-administracao.png)
+
 ### Versão mobile
 
 <p align="center">
