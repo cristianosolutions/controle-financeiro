@@ -3,6 +3,7 @@ import { Prisma } from "../../generated/prisma/client.js";
 import { ZodError } from "zod";
 import { env } from "../config/env.js";
 import { AppError } from "../errors/app-error.js";
+import multer from "multer";
 
 export const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
   if (error instanceof ZodError) {
@@ -11,6 +12,10 @@ export const errorHandler: ErrorRequestHandler = (error, _request, response, _ne
   }
   if (error instanceof AppError) {
     response.status(error.statusCode).json({ message: error.message });
+    return;
+  }
+  if (error instanceof multer.MulterError) {
+    response.status(error.code === "LIMIT_FILE_SIZE" ? 413 : 422).json({ message: error.code === "LIMIT_FILE_SIZE" ? "O arquivo deve ter no máximo 5 MB" : "Não foi possível receber o arquivo" });
     return;
   }
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

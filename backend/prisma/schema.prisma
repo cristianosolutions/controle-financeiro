@@ -12,6 +12,13 @@ enum TransactionType {
   EXPENSE
 }
 
+enum TransactionStatus {
+  PENDING
+  PAID
+  RECEIVED
+  CANCELED
+}
+
 enum PaymentMethod {
   CASH
   PIX
@@ -27,54 +34,332 @@ enum UserRole {
   ADMIN
 }
 
-model User {
-  id           String        @id @default(uuid()) @db.Uuid
-  name         String
-  email        String        @unique
-  passwordHash String
-  role         UserRole      @default(USER)
-  isActive     Boolean       @default(true)
-  categories   Category[]
-  transactions Transaction[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CASH
+  INVESTMENT
+  OTHER
 }
 
-model Category {
-  id           String           @id @default(uuid()) @db.Uuid
-  name         String
-  color        String           @default("#64748b")
-  type         TransactionType?
-  userId       String           @db.Uuid
-  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+enum RecurrenceFrequency {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  YEARLY
+  CUSTOM
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  CANCELED
+}
+
+enum TransferStatus {
+  PENDING
+  COMPLETED
+  CANCELED
+}
+
+model User {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  name                String
+  email               String                  @unique
+  passwordHash        String
+  role                UserRole                @default(USER)
+  isActive            Boolean                 @default(true)
+  categories          Category[]
+  accounts            Account[]
+  creditCards         CreditCard[]
+  transactions        Transaction[]
+  attachments         TransactionAttachment[]
+  recurrences         RecurringTransaction[]
+  budgets             Budget[]
+  goals               FinancialGoal[]
+  goalContributions   GoalContribution[]
+  authSessions        AuthSession[]
+  passwordResetTokens PasswordResetToken[]
+  auditLogs           AuditLog[]              @relation("AuditActor")
+  transfers           Transfer[]
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+}
+
+model AuthSession {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  userAgent  String?
+  ipAddress  String?
+  expiresAt  DateTime
+  lastUsedAt DateTime  @default(now())
+  revokedAt  DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  tokenHash String    @unique
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  action      String
+  entityType  String
+  entityId    String?
+  description String
+  metadata    Json?
+  actorUserId String?  @db.Uuid
+  actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([action, createdAt])
+}
+
+model Account {
+  id                String                 @id @default(uuid()) @db.Uuid
+  name              String
+  type              AccountType            @default(CHECKING)
+  color             String                 @default("#4f46e5")
+  initialBalance    Decimal                @default(0) @db.Decimal(14, 2)
+  isActive          Boolean                @default(true)
+  userId            String                 @db.Uuid
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions      Transaction[]
+  invoicePayments   CardInvoicePayment[]
+  recurrences       RecurringTransaction[]
+  goalContributions GoalContribution[]
+  outgoingTransfers Transfer[]             @relation("TransferFrom")
+  incomingTransfers Transfer[]             @relation("TransferTo")
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
 
   @@unique([userId, name])
   @@index([userId])
 }
 
+model CreditCard {
+  id           String                 @id @default(uuid()) @db.Uuid
+  name         String
+  brand        String?
+  creditLimit  Decimal                @default(0) @db.Decimal(14, 2)
+  closingDay   Int
+  dueDay       Int
+  color        String                 @default("#4f46e5")
+  isActive     Boolean                @default(true)
+  userId       String                 @db.Uuid
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  payments     CardInvoicePayment[]
+  recurrences  RecurringTransaction[]
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model CardInvoicePayment {
+  id             String     @id @default(uuid()) @db.Uuid
+  referenceMonth String
+  amount         Decimal    @db.Decimal(14, 2)
+  paidAt         DateTime
+  cardId         String     @db.Uuid
+  accountId      String     @db.Uuid
+  card           CreditCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  account        Account    @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([cardId, referenceMonth])
+  @@index([accountId])
+}
+
+model RecurringTransaction {
+  id            String              @id @default(uuid()) @db.Uuid
+  description   String
+  amount        Decimal             @db.Decimal(14, 2)
+  type          TransactionType
+  frequency     RecurrenceFrequency
+  intervalDays  Int?
+  startDate     DateTime
+  endDate       DateTime?
+  notes         String?
+  paymentMethod PaymentMethod?
+  isActive      Boolean             @default(true)
+  userId        String              @db.Uuid
+  categoryId    String              @db.Uuid
+  accountId     String?             @db.Uuid
+  cardId        String?             @db.Uuid
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category      Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  account       Account?            @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  card          CreditCard?         @relation(fields: [cardId], references: [id], onDelete: Restrict)
+  transactions  Transaction[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([userId, isActive])
+}
+
+model Category {
+  id           String                 @id @default(uuid()) @db.Uuid
+  name         String
+  color        String                 @default("#64748b")
+  type         TransactionType?
+  userId       String                 @db.Uuid
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  recurrences  RecurringTransaction[]
+  budgets      Budget[]
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Budget {
+  id         String   @id @default(uuid()) @db.Uuid
+  month      String
+  amount     Decimal  @db.Decimal(14, 2)
+  userId     String   @db.Uuid
+  categoryId String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, categoryId, month])
+  @@index([userId, month])
+}
+
+model FinancialGoal {
+  id            String             @id @default(uuid()) @db.Uuid
+  name          String
+  targetAmount  Decimal            @db.Decimal(14, 2)
+  initialAmount Decimal            @default(0) @db.Decimal(14, 2)
+  deadline      DateTime?
+  color         String             @default("#4f46e5")
+  status        GoalStatus         @default(ACTIVE)
+  notes         String?
+  userId        String             @db.Uuid
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributions GoalContribution[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([userId, status])
+}
+
+model GoalContribution {
+  id        String        @id @default(uuid()) @db.Uuid
+  amount    Decimal       @db.Decimal(14, 2)
+  date      DateTime
+  notes     String?
+  userId    String        @db.Uuid
+  goalId    String        @db.Uuid
+  accountId String?       @db.Uuid
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal      FinancialGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  account   Account?      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([userId, date])
+  @@index([goalId])
+  @@index([accountId])
+}
+
+model Transfer {
+  id            String         @id @default(uuid()) @db.Uuid
+  description   String
+  amount        Decimal        @db.Decimal(14, 2)
+  date          DateTime
+  status        TransferStatus @default(COMPLETED)
+  notes         String?
+  userId        String         @db.Uuid
+  fromAccountId String         @db.Uuid
+  toAccountId   String         @db.Uuid
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromAccount   Account        @relation("TransferFrom", fields: [fromAccountId], references: [id], onDelete: Restrict)
+  toAccount     Account        @relation("TransferTo", fields: [toAccountId], references: [id], onDelete: Restrict)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([userId, date])
+  @@index([fromAccountId])
+  @@index([toAccountId])
+}
+
 model Transaction {
-  id                 String          @id @default(uuid()) @db.Uuid
+  id                 String                  @id @default(uuid()) @db.Uuid
   description        String
-  amount             Decimal         @db.Decimal(14, 2)
+  amount             Decimal                 @db.Decimal(14, 2)
   type               TransactionType
+  status             TransactionStatus       @default(PENDING)
   date               DateTime
   notes              String?
   paymentMethod      PaymentMethod?
-  cardName           String?
-  installmentGroupId String?         @db.Uuid
+  cardId             String?                 @db.Uuid
+  installmentGroupId String?                 @db.Uuid
   installmentNumber  Int?
   installmentTotal   Int?
-  userId             String          @db.Uuid
-  categoryId         String          @db.Uuid
-  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category           Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  userId             String                  @db.Uuid
+  categoryId         String                  @db.Uuid
+  accountId          String?                 @db.Uuid
+  recurringId        String?                 @db.Uuid
+  occurrenceDate     DateTime?
+  importFingerprint  String?
+  importSource       String?
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category           Category                @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  account            Account?                @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  card               CreditCard?             @relation(fields: [cardId], references: [id], onDelete: Restrict)
+  recurring          RecurringTransaction?   @relation(fields: [recurringId], references: [id], onDelete: SetNull)
+  attachments        TransactionAttachment[]
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
 
+  @@unique([recurringId, occurrenceDate])
+  @@unique([userId, importFingerprint])
   @@index([userId, date])
+  @@index([userId, status, date])
   @@index([categoryId])
+  @@index([accountId])
+  @@index([cardId])
+  @@index([recurringId])
   @@index([installmentGroupId])
+}
+
+model TransactionAttachment {
+  id            String      @id @default(uuid()) @db.Uuid
+  originalName  String
+  storedName    String      @unique
+  mimeType      String
+  size          Int
+  sha256        String
+  userId        String      @db.Uuid
+  transactionId String      @db.Uuid
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@unique([transactionId, sha256])
+  @@index([userId, createdAt])
+  @@index([transactionId])
 }

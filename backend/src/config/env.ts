@@ -9,6 +9,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3333),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
+  UPLOAD_DIR: z.string().min(1).default("./uploads"),
 }).superRefine((data, context) => {
   if (data.NODE_ENV === "production" && data.JWT_SECRET === developmentSecret) {
     context.addIssue({ code: "custom", path: ["JWT_SECRET"], message: "JWT_SECRET deve ser definido em produção" });

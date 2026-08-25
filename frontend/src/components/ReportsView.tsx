@@ -1,16 +1,23 @@
 import { useMemo, useState } from "react";
-import { Download, FileBarChart, Printer } from "lucide-react";
+import { Download, FileBarChart, Printer, TrendingDown, TrendingUp, WalletCards } from "lucide-react";
 import { api } from "../lib/api";
 import {
   paymentMethodLabels,
+  transactionStatusLabels,
   type Category,
+  type Account,
+  type CreditCard,
   type FinancialReport,
+  type PaymentMethod,
   type TransactionType,
+  type TransactionStatus,
   type User,
 } from "../types";
 
 interface Props {
   categories: Category[];
+  accounts: Account[];
+  cards: CreditCard[];
   user: User;
 }
 const currency = new Intl.NumberFormat("pt-BR", {
@@ -22,7 +29,26 @@ const firstDay = `${today.slice(0, 7)}-01`;
 const csvCell = (value: string | number) =>
   `"${String(value).replaceAll('"', '""')}"`;
 
-export function ReportsView({ categories, user }: Props) {
+function shortMonth(month: string) {
+  return new Date(`${month}-01T00:00:00.000Z`).toLocaleDateString("pt-BR", { month: "short", year: "2-digit", timeZone: "UTC" }).replace(".", "");
+}
+
+function ReportTrendChart({ data }: { data: FinancialReport["analytics"]["monthly"] }) {
+  const maximum = Math.max(...data.flatMap((item) => [item.income, item.expense]), 1);
+  return <div className="report-trend-chart">{data.map((item) => <div key={item.month} className="report-trend-column"><div className="report-trend-bars"><i className="income-bar" style={{ height: `${Math.max(2, item.income / maximum * 100)}%` }} title={`Receitas: ${currency.format(item.income)}`} /><i className="expense-bar" style={{ height: `${Math.max(2, item.expense / maximum * 100)}%` }} title={`Despesas: ${currency.format(item.expense)}`} /></div><span>{shortMonth(item.month)}</span></div>)}</div>;
+}
+
+function NetWorthChart({ data }: { data: FinancialReport["analytics"]["netWorth"] }) {
+  const width = 720, height = 210;
+  const values = data.map((item) => item.netWorth);
+  const minimum = Math.min(0, ...values), maximum = Math.max(0, ...values), range = Math.max(maximum - minimum, 1);
+  const x = (index: number) => 25 + index / Math.max(data.length - 1, 1) * (width - 50);
+  const y = (value: number) => 18 + (maximum - value) / range * (height - 55);
+  const points = values.map((value, index) => `${x(index)},${y(value)}`).join(" ");
+  return <div className="net-worth-chart"><svg viewBox={`0 0 ${width} ${height}`}><line x1="20" x2={width - 20} y1={y(0)} y2={y(0)} /><polyline points={points} />{data.map((item, index) => <g key={item.month}><circle className={item.netWorth < 0 ? "negative" : ""} cx={x(index)} cy={y(item.netWorth)} r="5"><title>{currency.format(item.netWorth)}</title></circle><text x={x(index)} y={height - 5} textAnchor="middle">{shortMonth(item.month)}</text></g>)}</svg></div>;
+}
+
+export function ReportsView({ categories, accounts, cards, user }: Props) {
   const [from, setFrom] = useState(firstDay);
   const [to, setTo] = useState(today);
   const [type, setType] = useState<"" | TransactionType>("");
@@ -30,12 +56,16 @@ export function ReportsView({ categories, user }: Props) {
   const [report, setReport] = useState<FinancialReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [status, setStatus] = useState("");
+  const [notice, setNotice] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"" | TransactionStatus>("");
+  const [accountId, setAccountId] = useState("");
+  const [cardId, setCardId] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"" | PaymentMethod>("");
 
   async function generate() {
     setLoading(true);
     setError("");
-    setStatus("Consultando suas movimentações...");
+    setNotice("Consultando suas movimentações...");
     setReport(null);
     try {
       const params = new URLSearchParams({
@@ -44,15 +74,19 @@ export function ReportsView({ categories, user }: Props) {
       });
       if (type) params.set("type", type);
       if (categoryId) params.set("categoryId", categoryId);
+      if (statusFilter) params.set("status", statusFilter);
+      if (accountId) params.set("accountId", accountId);
+      if (cardId) params.set("cardId", cardId);
+      if (paymentMethod) params.set("paymentMethod", paymentMethod);
       const data = await api<FinancialReport>(`/reports/financial?${params}`);
       setReport(data);
-      setStatus(
+      setNotice(
         data.totals.count
           ? `Relatório gerado com sucesso: ${data.totals.count} ${data.totals.count === 1 ? "lançamento encontrado" : "lançamentos encontrados"}.`
           : "Consulta concluída: nenhum lançamento foi encontrado com os filtros informados.",
       );
     } catch (reason) {
-      setStatus("");
+      setNotice("");
       setError(
         reason instanceof Error
           ? reason.message
@@ -79,8 +113,10 @@ export function ReportsView({ categories, user }: Props) {
         "Descrição",
         "Tipo",
         "Categoria",
+        "Conta",
         "Forma de pagamento",
         "Cartão",
+        "Situação",
         "Valor (R$)",
         "Observação",
       ],
@@ -89,8 +125,10 @@ export function ReportsView({ categories, user }: Props) {
         item.description,
         item.type === "INCOME" ? "Receita" : "Despesa",
         item.category.name,
+        item.account?.name ?? "",
         item.paymentMethod ? paymentMethodLabels[item.paymentMethod] : "",
-        item.cardName ?? "",
+        item.card?.name ?? "",
+        transactionStatusLabels[item.effectiveStatus],
         Number(item.amount).toFixed(2).replace(".", ","),
         item.notes ?? "",
       ]),
@@ -202,12 +240,44 @@ export function ReportsView({ categories, user }: Props) {
               ))}
           </select>
         </label>
+        <label>
+          Situação
+          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as "" | TransactionStatus)}>
+            <option value="">Ativos</option>
+            <option value="PENDING">Previstos</option>
+            <option value="OVERDUE">Atrasados</option>
+            <option value="PAID">Pagos</option>
+            <option value="RECEIVED">Recebidos</option>
+            <option value="CANCELED">Cancelados</option>
+          </select>
+        </label>
+        <label>
+          Conta
+          <select value={accountId} onChange={(event) => setAccountId(event.target.value)}>
+            <option value="">Todas</option>
+            {accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
+          </select>
+        </label>
+        <label>
+          Pagamento
+          <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as "" | PaymentMethod)}>
+            <option value="">Todos</option>
+            {Object.entries(paymentMethodLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </label>
+        <label>
+          Cartão
+          <select value={cardId} onChange={(event) => setCardId(event.target.value)}>
+            <option value="">Todos</option>
+            {cards.map((card) => <option key={card.id} value={card.id}>{card.name}</option>)}
+          </select>
+        </label>
         <button className="primary-button compact" disabled={loading}>
           {loading ? "Gerando..." : "Gerar relatório"}
         </button>
       </form>
       {error && <div className="form-error spaced">{error}</div>}
-      {status && (
+      {notice && (
         <div
           className={`report-status no-print ${loading ? "loading" : report?.totals.count ? "success" : "empty"}`}
           role="status"
@@ -220,7 +290,7 @@ export function ReportsView({ categories, user }: Props) {
                 ? "Relatório pronto"
                 : "Nenhum resultado"}
           </strong>
-          <span>{status}</span>
+          <span>{notice}</span>
         </div>
       )}
       {report && (
@@ -269,6 +339,21 @@ export function ReportsView({ categories, user }: Props) {
                 <span>Lançamentos</span>
                 <strong>{report.totals.count}</strong>
               </article>
+            </div>
+            <div className="report-comparison no-print">
+              <div><span>Comparação com o período anterior</span><small>{new Date(report.comparison.period.from).toLocaleDateString("pt-BR", { timeZone: "UTC" })} a {new Date(report.comparison.period.to).toLocaleDateString("pt-BR", { timeZone: "UTC" })}</small></div>
+              <div className={report.comparison.change.income >= 0 ? "positive" : "negative"}>{report.comparison.change.income >= 0 ? <TrendingUp /> : <TrendingDown />}<span>Receitas<strong>{Math.abs(Math.round(report.comparison.change.income))}%</strong></span></div>
+              <div className={report.comparison.change.expense <= 0 ? "positive" : "negative"}>{report.comparison.change.expense <= 0 ? <TrendingDown /> : <TrendingUp />}<span>Despesas<strong>{Math.abs(Math.round(report.comparison.change.expense))}%</strong></span></div>
+              <div className={report.comparison.change.balance >= 0 ? "positive" : "negative"}>{report.comparison.change.balance >= 0 ? <TrendingUp /> : <TrendingDown />}<span>Saldo<strong>{Math.abs(Math.round(report.comparison.change.balance))}%</strong></span></div>
+            </div>
+            <div className="advanced-report-grid">
+              <article className="panel report-chart-panel"><div className="panel-title"><div><p className="eyebrow">Comparativo mensal</p><h2>Receitas e despesas</h2></div><div className="chart-legend"><span><i className="income-dot" /> Receitas</span><span><i className="expense-dot" /> Despesas</span></div></div><ReportTrendChart data={report.analytics.monthly} /></article>
+              <article className="panel report-chart-panel"><div className="panel-title"><div><p className="eyebrow">Patrimônio líquido</p><h2>Evolução patrimonial</h2></div><WalletCards /></div><NetWorthChart data={report.analytics.netWorth} /><div className="net-worth-breakdown">{report.analytics.netWorth.length > 0 && <><span>Disponível <strong>{currency.format(report.analytics.netWorth.at(-1)!.liquidBalance)}</strong></span><span>Metas <strong>{currency.format(report.analytics.netWorth.at(-1)!.goalSavings)}</strong></span><span>Dívidas de cartão <strong className="money expense">{currency.format(report.analytics.netWorth.at(-1)!.cardDebt)}</strong></span></>}</div></article>
+            </div>
+            <div className="report-source-grid">
+              <article className="panel"><p className="eyebrow">Origem</p><h2>Por conta</h2><div className="report-source-list">{report.analytics.accounts.map((item) => <div key={item.id}><i style={{ background: item.color }} /><span><strong>{item.name}</strong><small>{item.count} lançamento(s)</small></span><b>{currency.format(item.total)}</b></div>)}{!report.analytics.accounts.length && <p className="muted">Nenhuma conta no resultado.</p>}</div></article>
+              <article className="panel"><p className="eyebrow">Meios utilizados</p><h2>Por pagamento</h2><div className="report-source-list">{report.analytics.paymentMethods.map((item) => <div key={item.id}><i /><span><strong>{paymentMethodLabels[item.id]}</strong><small>{item.count} lançamento(s)</small></span><b>{currency.format(item.total)}</b></div>)}{!report.analytics.paymentMethods.length && <p className="muted">Nenhuma forma de pagamento.</p>}</div></article>
+              <article className="panel"><p className="eyebrow">Crédito</p><h2>Por cartão</h2><div className="report-source-list">{report.analytics.cards.map((item) => <div key={item.id}><i style={{ background: item.color }} /><span><strong>{item.name}</strong><small>{item.count} compra(s)</small></span><b>{currency.format(item.total)}</b></div>)}{!report.analytics.cards.length && <p className="muted">Nenhum cartão no resultado.</p>}</div></article>
             </div>
             <div className="report-grid">
               <article className="panel report-categories">
@@ -333,11 +418,12 @@ export function ReportsView({ categories, user }: Props) {
                             {item.paymentMethod
                               ? ` · ${paymentMethodLabels[item.paymentMethod]}`
                               : ""}
-                            {item.cardName ? ` · ${item.cardName}` : ""}
+                            {item.card ? ` · ${item.card.name}` : ""}
                           </small>
                         </span>
                         <span>
                           {item.type === "INCOME" ? "Receita" : "Despesa"}
+                          <small>{transactionStatusLabels[item.effectiveStatus]}</small>
                         </span>
                         <strong
                           className={

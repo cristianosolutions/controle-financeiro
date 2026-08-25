@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
   KeyRound,
+  Copy,
   Pencil,
   Plus,
   ShieldCheck,
@@ -21,6 +22,7 @@ export function AdminUsersView({ currentUser }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [recovery, setRecovery] = useState<{ user: AdminUser; token: string; expiresAt: string } | null>(null);
 
   async function load() {
     try {
@@ -104,6 +106,14 @@ export function AdminUsersView({ currentUser }: Props) {
     }
   }
 
+  async function createRecoveryCode(user: AdminUser) {
+    if (!confirm(`Gerar um novo código temporário para ${user.name}? Códigos anteriores serão invalidados.`)) return;
+    try {
+      const result = await api<{ token: string; expiresAt: string }>(`/admin/users/${user.id}/recovery-code`, { method: "POST" });
+      setRecovery({ user, ...result }); setError("");
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Não foi possível gerar o código"); }
+  }
+
   return (
     <section className="content-section admin-users-section">
       <div className="section-heading">
@@ -169,6 +179,7 @@ export function AdminUsersView({ currentUser }: Props) {
             </span>
             <span>{user._count?.transactions ?? 0}</span>
             <span className="row-actions">
+              <button className="icon-button" onClick={() => void createRecoveryCode(user)} title="Gerar código de recuperação"><KeyRound size={16} /></button>
               <button
                 className="icon-button"
                 onClick={() => {
@@ -298,6 +309,7 @@ export function AdminUsersView({ currentUser }: Props) {
           </section>
         </div>
       )}
+      {recovery && <div className="modal-backdrop"><section className="modal-card recovery-code-modal"><div className="modal-header"><div><p className="eyebrow">Recuperação de acesso</p><h2>Código temporário</h2></div><button className="icon-button" onClick={() => setRecovery(null)}><X /></button></div><p>Envie este código para <strong>{recovery.user.name}</strong> por um canal seguro. Ele expira em {new Date(recovery.expiresAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} e só pode ser usado uma vez.</p><div className="recovery-token"><code>{recovery.token}</code><button className="secondary-button compact" onClick={() => void navigator.clipboard.writeText(recovery.token)}><Copy size={16} /> Copiar</button></div><div className="form-actions"><button className="primary-button" onClick={() => setRecovery(null)}>Concluído</button></div></section></div>}
     </section>
   );
 }

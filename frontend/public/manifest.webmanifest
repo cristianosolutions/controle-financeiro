@@ -1,0 +1,21 @@
+{
+  "name": "Control Finance — Controle Financeiro",
+  "short_name": "Control Finance",
+  "description": "Controle receitas, despesas, contas, cartões, metas e relatórios com privacidade.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f6f8",
+  "theme_color": "#111827",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    { "src": "/icons/control-finance.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/control-finance-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Abrir o painel", "short_name": "Painel", "url": "/?view=dashboard", "icons": [{ "src": "/icons/control-finance.svg", "sizes": "any", "type": "image/svg+xml" }] },
+    { "name": "Novo lançamento", "short_name": "Novo", "url": "/?action=new-transaction", "icons": [{ "src": "/icons/control-finance.svg", "sizes": "any", "type": "image/svg+xml" }] }
+  ]
+}

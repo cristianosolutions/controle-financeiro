@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Control Finance">
+  <rect width="512" height="512" rx="112" fill="#4f46e5"/>
+  <path d="M128 205h256L256 105 128 205Zm27 34v125h42V239h-42Zm80 0v125h42V239h-42Zm80 0v125h42V239h-42ZM119 385h274v35H119v-35Z" fill="#fff"/>
+  <circle cx="256" cy="166" r="17" fill="#c7d2fe"/>
+</svg>

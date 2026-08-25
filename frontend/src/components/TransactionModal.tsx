@@ -2,30 +2,23 @@ import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
 import { api } from "../lib/api";
 import type {
+  Account,
   Category,
+  CreditCard,
   PaymentMethod,
+  StoredTransactionStatus,
   Transaction,
   TransactionType,
 } from "../types";
 
 interface Props {
+  accounts: Account[];
+  cards: CreditCard[];
   categories: Category[];
   transaction?: Transaction | null;
   onClose: () => void;
   onSaved: () => void;
 }
-const cardSuggestions = [
-  "Nubank",
-  "Itaú",
-  "Caixa",
-  "Banco do Brasil",
-  "Bradesco",
-  "Santander",
-  "Inter",
-  "C6 Bank",
-  "PicPay",
-  "Mercado Pago",
-];
 const paymentMethods: Array<{ value: PaymentMethod; label: string }> = [
   { value: "PIX", label: "Pix" },
   { value: "CREDIT_CARD", label: "Cartão de crédito" },
@@ -37,6 +30,8 @@ const paymentMethods: Array<{ value: PaymentMethod; label: string }> = [
 ];
 
 export function TransactionModal({
+  accounts,
+  cards,
   categories,
   transaction,
   onClose,
@@ -45,9 +40,12 @@ export function TransactionModal({
   const [type, setType] = useState<TransactionType>(
     transaction?.type ?? "EXPENSE",
   );
+  const [status, setStatus] = useState<StoredTransactionStatus>(transaction?.status ?? (transaction?.type === "INCOME" ? "RECEIVED" : "PAID"));
   const [installments, setInstallments] = useState(1);
   const [amount, setAmount] = useState(Number(transaction?.amount ?? 0));
   const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? "");
+  const [accountId, setAccountId] = useState(transaction?.accountId ?? accounts.find((account) => account.isActive)?.id ?? "");
+  const [cardId, setCardId] = useState(transaction?.cardId ?? cards.find((card) => card.isActive)?.id ?? "");
   const [paymentMethod, setPaymentMethod] = useState<"" | PaymentMethod>(
     transaction?.paymentMethod ??
       (transaction?.type === "EXPENSE" ? "OTHER" : ""),
@@ -92,7 +90,7 @@ export function TransactionModal({
             <span className="eyebrow">Lançamento</span>
             <h2>{transaction ? "Editar transação" : "Nova transação"}</h2>
           </div>
-          <button className="icon-button" onClick={onClose}>
+          <button className="icon-button" onClick={onClose} aria-label="Fechar formulário">
             <X />
           </button>
         </div>
@@ -101,8 +99,10 @@ export function TransactionModal({
             <button
               type="button"
               className={type === "EXPENSE" ? "active expense" : ""}
+              aria-pressed={type === "EXPENSE"}
               onClick={() => {
                 setType("EXPENSE");
+                setStatus("PAID");
                 setCategoryId("");
                 setPaymentMethod("");
               }}
@@ -112,8 +112,10 @@ export function TransactionModal({
             <button
               type="button"
               className={type === "INCOME" ? "active income" : ""}
+              aria-pressed={type === "INCOME"}
               onClick={() => {
                 setType("INCOME");
+                setStatus("RECEIVED");
                 setCategoryId("");
                 setPaymentMethod("");
                 setInstallments(1);
@@ -158,6 +160,14 @@ export function TransactionModal({
             </label>
           </div>
           <label>
+            Situação
+            <select name="status" value={status} onChange={(event) => setStatus(event.target.value as StoredTransactionStatus)} required>
+              <option value="PENDING">Previsto</option>
+              {type === "INCOME" ? <option value="RECEIVED">Recebido</option> : <option value="PAID">Pago</option>}
+              {transaction && <option value="CANCELED">Cancelado</option>}
+            </select>
+          </label>
+          <label>
             Categoria
             <select
               name="categoryId"
@@ -175,6 +185,15 @@ export function TransactionModal({
               ))}
             </select>
           </label>
+          {!showCard && <label>
+              Conta
+              <select name="accountId" value={accountId} onChange={(event) => setAccountId(event.target.value)} required>
+                <option value="" disabled>Selecione uma conta</option>
+                {accounts.filter((account) => account.isActive || account.id === transaction?.accountId).map((account) => (
+                  <option key={account.id} value={account.id}>{account.name}</option>
+                ))}
+              </select>
+            </label>}
           {type === "EXPENSE" && (
             <label>
               Forma de pagamento
@@ -202,23 +221,11 @@ export function TransactionModal({
           {showCard && (
             <label className="card-name-field">
               Cartão utilizado
-              <input
-                name="cardName"
-                list="card-suggestions"
-                defaultValue={transaction?.cardName ?? ""}
-                placeholder="Ex: Nubank, Itaú ou Caixa"
-                maxLength={80}
-                autoComplete="off"
-                required
-              />
-              <datalist id="card-suggestions">
-                {cardSuggestions.map((card) => (
-                  <option key={card} value={card} />
-                ))}
-              </datalist>
-              <small>
-                Escolha uma sugestão ou digite o nome do seu cartão.
-              </small>
+              <select name="cardId" value={cardId} onChange={(event) => setCardId(event.target.value)} required>
+                <option value="" disabled>Selecione um cartão cadastrado</option>
+                {cards.filter((card) => card.isActive || card.id === transaction?.cardId).map((card) => <option key={card.id} value={card.id}>{card.name}</option>)}
+              </select>
+              {!cards.length && <small>Cadastre um cartão no menu Cartões antes de lançar uma compra.</small>}
             </label>
           )}
           {!transaction && showCard && (

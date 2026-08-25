@@ -17,14 +17,6 @@ Use `npm test`, `npm run typecheck` e `npm run build` antes de publicar alteraç
 
 ## Rotas
 
-- `GET /health`
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `GET|POST /api/categories`
-- `PUT|DELETE /api/categories/:id`
-- `GET|POST /api/transactions`
-- `PUT|DELETE /api/transactions/:id`
-- `GET /api/dashboard/summary?month=2026-08`
+A API inclui autenticação e sessões, contas, transferências, cartões e faturas, categorias, lançamentos e anexos, recorrências, orçamentos, metas, previsão, relatórios, avisos, importação CSV, administração e auditoria.
 
-As rotas protegidas usam `Authorization: Bearer <token>`.
+Consulte a [referência completa da API](../docs/API.md). As rotas protegidas usam `Authorization: Bearer <token>`.

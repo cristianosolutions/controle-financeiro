@@ -1,7 +1,10 @@
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { TransactionAttachments } from "./TransactionAttachments";
 import { api } from "../lib/api";
 import {
   paymentMethodLabels,
+  transactionStatusLabels,
   type Category,
   type Transaction,
   type TransactionType,
@@ -32,6 +35,7 @@ export function TransactionsView({
   onEdit,
   onChanged,
 }: Props) {
+  const [attachmentTransaction, setAttachmentTransaction] = useState<Transaction | null>(null);
   async function remove(id: string) {
     if (confirm("Excluir este lançamento?")) {
       await api(`/transactions/${id}`, { method: "DELETE" });
@@ -69,6 +73,9 @@ export function TransactionsView({
                 }
               />
               {item.description}
+              <em className={`status-badge status-${item.effectiveStatus.toLowerCase()}`}>
+                {transactionStatusLabels[item.effectiveStatus]}
+              </em>
             </span>
             <span className="category-info">
               <em
@@ -83,9 +90,11 @@ export function TransactionsView({
               {item.paymentMethod && (
                 <small>
                   {paymentMethodLabels[item.paymentMethod]}
-                  {item.cardName ? ` · ${item.cardName}` : ""}
+                  {item.card ? ` · ${item.card.name}` : ""}
                 </small>
               )}
+              <small>{item.account ? `Conta: ${item.account.name}` : item.card ? `Fatura: ${item.card.name}` : ""}</small>
+              {item.recurringId && <small>Gerado por recorrência</small>}
             </span>
             <span className="muted">
               {new Date(item.date).toLocaleDateString("pt-BR", {
@@ -101,12 +110,14 @@ export function TransactionsView({
               {currency.format(Number(item.amount))}
             </strong>
             <span className="row-actions">
-              <button className="icon-button" onClick={() => onEdit(item)}>
+              <button className="icon-button attachment-button" onClick={() => setAttachmentTransaction(item)} title="Comprovantes"><Paperclip size={16} />{Boolean(item.attachments?.length) && <i>{item.attachments!.length}</i>}</button>
+              <button className="icon-button" onClick={() => onEdit(item)} aria-label={`Editar ${item.description}`}>
                 <Pencil size={16} />
               </button>
               <button
                 className="icon-button danger"
                 onClick={() => remove(item.id)}
+                aria-label={`Excluir ${item.description}`}
               >
                 <Trash2 size={16} />
               </button>
@@ -132,6 +143,7 @@ export function TransactionsView({
           </button>
         </div>
       )}
+      {attachmentTransaction && <TransactionAttachments transaction={attachmentTransaction} onClose={() => setAttachmentTransaction(null)} onChanged={onChanged} />}
     </section>
   );
 }

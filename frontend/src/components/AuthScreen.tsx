@@ -18,15 +18,17 @@ interface Props {
 
 export function AuthScreen({ onAuthenticated }: Props) {
   const currentYear = new Date().getFullYear();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register" | "reset">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError("");
+    setNotice("");
     const form = new FormData(event.currentTarget);
     const payload = {
       name: form.get("name"),
@@ -34,6 +36,13 @@ export function AuthScreen({ onAuthenticated }: Props) {
       password: form.get("password"),
     };
     try {
+      if (mode === "reset") {
+        if (form.get("password") !== form.get("confirmPassword")) throw new Error("A confirmação da senha não confere.");
+        await api("/auth/reset-password", { method: "POST", body: JSON.stringify({ token: form.get("token"), password: form.get("password") }) });
+        setMode("login");
+        setNotice("Senha redefinida. Entre usando sua nova senha.");
+        return;
+      }
       if (mode === "register") {
         await api<User>("/auth/register", {
           method: "POST",
@@ -56,7 +65,7 @@ export function AuthScreen({ onAuthenticated }: Props) {
   }
 
   return (
-    <main className="auth-page">
+    <main className="auth-page" id="main-content" tabIndex={-1}>
       <section className="auth-hero">
         <div className="financial-decoration" aria-hidden="true">
           <span className="finance-orbit orbit-one" />
@@ -94,13 +103,13 @@ export function AuthScreen({ onAuthenticated }: Props) {
             <Landmark size={20} /> Control Finance
           </span>
           <p className="eyebrow">
-            {mode === "login" ? "Bem-vindo de volta" : "Comece agora"}
+            {mode === "login" ? "Bem-vindo de volta" : mode === "register" ? "Comece agora" : "Recuperação segura"}
           </p>
-          <h2>{mode === "login" ? "Entre na sua conta" : "Crie sua conta"}</h2>
+          <h2>{mode === "login" ? "Entre na sua conta" : mode === "register" ? "Crie sua conta" : "Redefina sua senha"}</h2>
           <p className="muted">
             {mode === "login"
               ? "Acompanhe seu mês e mantenha o plano em dia."
-              : "Leva menos de um minuto."}
+              : mode === "register" ? "Leva menos de um minuto." : "Informe o código temporário fornecido pelo administrador."}
           </p>
           <form onSubmit={submit}>
             {mode === "register" && (
@@ -114,7 +123,8 @@ export function AuthScreen({ onAuthenticated }: Props) {
                 />
               </label>
             )}
-            <label>
+            {mode === "reset" && <label>Código de recuperação<input name="token" autoComplete="one-time-code" placeholder="Cole o código temporário" required minLength={20} /></label>}
+            {mode !== "reset" && <label>
               E-mail
               <input
                 name="email"
@@ -122,14 +132,14 @@ export function AuthScreen({ onAuthenticated }: Props) {
                 placeholder="voce@exemplo.com"
                 required
               />
-            </label>
+            </label>}
             <label>
               Senha
               <div className="password-field">
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Mínimo de 8 caracteres"
+                  placeholder={mode === "login" ? "Sua senha" : "8+ caracteres, maiúscula e número"}
                   minLength={8}
                   required
                 />
@@ -142,24 +152,28 @@ export function AuthScreen({ onAuthenticated }: Props) {
                 </button>
               </div>
             </label>
+            {mode === "reset" && <label>Confirmar nova senha<div className="password-field"><input name="confirmPassword" type={showPassword ? "text" : "password"} minLength={8} required /></div></label>}
             {error && <div className="form-error">{error}</div>}
+            {notice && <div className="admin-notice">{notice}</div>}
             <button className="primary-button" disabled={loading}>
               {loading
                 ? "Aguarde..."
                 : mode === "login"
                   ? "Entrar"
-                  : "Criar conta"}
+                  : mode === "register" ? "Criar conta" : "Redefinir senha"}
               <ArrowRight size={18} />
             </button>
           </form>
+          {mode === "login" && <button className="forgot-password" onClick={() => { setMode("reset"); setError(""); }}>Esqueci minha senha</button>}
           <p className="auth-switch">
             {mode === "login"
               ? "Ainda não tem uma conta?"
-              : "Já tem uma conta?"}{" "}
+              : mode === "register" ? "Já tem uma conta?" : "Lembrou sua senha?"}{" "}
             <button
               onClick={() => {
                 setMode(mode === "login" ? "register" : "login");
                 setError("");
+                setNotice("");
               }}
             >
               {mode === "login" ? "Cadastre-se" : "Entrar"}

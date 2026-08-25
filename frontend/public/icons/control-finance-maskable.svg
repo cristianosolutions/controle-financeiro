@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Control Finance">
+  <rect width="512" height="512" fill="#111827"/>
+  <rect x="82" y="82" width="348" height="348" rx="90" fill="#4f46e5"/>
+  <path d="M151 218h210L256 136 151 218Zm22 28v103h35V246h-35Zm66 0v103h35V246h-35Zm65 0v103h35V246h-35ZM144 366h224v29H144v-29Z" fill="#fff"/>
+</svg>

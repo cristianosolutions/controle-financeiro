@@ -108,6 +108,7 @@ export function DashboardView({ summary, month, onMonth, onNew }: Props) {
     expense: 0,
     balance: 0,
     transactionCount: 0,
+    forecast: { pendingIncome: 0, pendingExpense: 0, projectedBalance: 0, pendingCount: 0, overdueCount: 0 },
     previousMonth: { income: 0, expense: 0, balance: 0 },
     trend: [],
     expenseCategories: [],
@@ -182,6 +183,15 @@ export function DashboardView({ summary, month, onMonth, onNew }: Props) {
           </button>
         </div>
       </div>
+
+      {(current.forecast.pendingCount > 0 || current.forecast.overdueCount > 0) && (
+        <div className="forecast-strip">
+          <div><small>Saldo projetado</small><strong>{currency.format(current.forecast.projectedBalance)}</strong></div>
+          <div><small>A receber</small><strong className="money income">{currency.format(current.forecast.pendingIncome)}</strong></div>
+          <div><small>A pagar</small><strong className="money expense">{currency.format(current.forecast.pendingExpense)}</strong></div>
+          <div><small>Pendências</small><strong>{current.forecast.pendingCount}</strong>{current.forecast.overdueCount > 0 && <span>{current.forecast.overdueCount} atrasadas</span>}</div>
+        </div>
+      )}
 
       <div className="summary-grid dashboard-summary-grid">
         {cards.map(({ label, value, previous, icon: Icon, tone }) => {
@@ -309,7 +319,7 @@ export function DashboardView({ summary, month, onMonth, onNew }: Props) {
                   <span>
                     {item.category.name}
                     {item.paymentMethod ? ` · ${paymentMethodLabels[item.paymentMethod]}` : ""}
-                    {item.cardName ? ` · ${item.cardName}` : ""} ·{" "}
+                    {item.card ? ` · ${item.card.name}` : ""} ·{" "}
                     {new Date(item.date).toLocaleDateString("pt-BR", { timeZone: "UTC" })}
                   </span>
                 </div>

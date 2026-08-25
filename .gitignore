@@ -3,13 +3,16 @@ node_modules
 
 # Builds e arquivos gerados
 dist
-generated/prisma
+/backend/generated/prisma/
 *.tsbuildinfo
 coverage
+backend/uploads
+backups
 
 # Variáveis locais e segredos
 .env
 .env.local
+.env.docker
 .env.*.local
 
 # Sistema e editores
