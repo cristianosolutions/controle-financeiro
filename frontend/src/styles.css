@@ -1028,9 +1028,18 @@ textarea:focus {
 .sidebar-add:hover {
   background: #ffffff15;
 }
+.app-version {
+  flex: 0 0 auto;
+  margin-top: 10px;
+  color: #687386;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+  text-align: center;
+}
 .user-block {
   flex: 0 0 auto;
-  margin-top: 14px;
+  margin-top: 10px;
   padding: 16px 7px 0;
   border-top: 1px solid #ffffff14;
   display: grid;

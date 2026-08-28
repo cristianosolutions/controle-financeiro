@@ -22,8 +22,10 @@ import { ProfilePhotoModal } from "./components/ProfilePhotoModal";
 import { ApiError, api, apiFile } from "./lib/api";
 import { readAlertPreference, writeAlertPreference } from "./lib/alert-preferences";
 import type { Account, AlertsResponse, Budget, Category, CreditCard as CreditCardData, FinancialAlert, RecurringTransaction, Summary, Transaction, User } from "./types";
+import packageJson from "../package.json";
 
 type View = "dashboard" | "alerts" | "accounts" | "transfers" | "cards" | "recurrences" | "budgets" | "forecast" | "goals" | "transactions" | "categories" | "reports" | "import" | "security" | "users" | "audit";
+const appVersion = packageJson.version;
 const viewTitles: Record<View, string> = {
   dashboard: "Visão geral",
   alerts: "Avisos",
@@ -367,6 +369,9 @@ export function App() {
         <button className="sidebar-add" onClick={() => setModal("new")} aria-keyshortcuts="Control+N Meta+N" title="Novo lançamento (Ctrl+N)">
           <Plus size={18} /> Novo lançamento
         </button>
+        <small className="app-version" title={`Versão do sistema ${appVersion}`}>
+          Build v{appVersion}
+        </small>
         <div className="user-block">
           <button
             className="profile-avatar-button"
