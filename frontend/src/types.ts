@@ -48,6 +48,7 @@ export interface User {
   email: string;
   role: "USER" | "ADMIN";
   isActive: boolean;
+  hasAvatar: boolean;
 }
 export interface AdminUser extends User {
   createdAt: string;

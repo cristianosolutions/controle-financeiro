@@ -67,6 +67,7 @@ model User {
   name                String
   email               String                  @unique
   passwordHash        String
+  avatarStoredName    String?                 @unique
   role                UserRole                @default(USER)
   isActive            Boolean                 @default(true)
   categories          Category[]

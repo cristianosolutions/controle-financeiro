@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeftRight, BarChart3, Bell, ClipboardList, CreditCard, FileBarChart, FileUp, Flag, Landmark, LineChart, LogOut, Menu, PiggyBank, Plus, Repeat2, ShieldCheck, Tags, Users, WalletCards, X } from "lucide-react";
+import { ArrowLeftRight, BarChart3, Bell, ChevronDown, ClipboardList, CreditCard, FileBarChart, FileUp, Flag, Landmark, LineChart, LogOut, Menu, MoreHorizontal, PiggyBank, Plus, Repeat2, ShieldCheck, Tags, Users, WalletCards, X } from "lucide-react";
 import { AdminUsersView } from "./components/AdminUsersView";
 import { AccountsView } from "./components/AccountsView";
 import { CardsView } from "./components/CardsView";
@@ -18,7 +18,8 @@ import { DashboardView } from "./components/DashboardView";
 import { TransactionModal } from "./components/TransactionModal";
 import { TransactionsView } from "./components/TransactionsView";
 import { ReportsView } from "./components/ReportsView";
-import { ApiError, api } from "./lib/api";
+import { ProfilePhotoModal } from "./components/ProfilePhotoModal";
+import { ApiError, api, apiFile } from "./lib/api";
 import { readAlertPreference, writeAlertPreference } from "./lib/alert-preferences";
 import type { Account, AlertsResponse, Budget, Category, CreditCard as CreditCardData, FinancialAlert, RecurringTransaction, Summary, Transaction, User } from "./types";
 
@@ -40,6 +41,24 @@ const viewTitles: Record<View, string> = {
   security: "Segurança",
   users: "Usuários",
   audit: "Auditoria",
+};
+const viewNavigationGroups: Record<View, string> = {
+  dashboard: "principal",
+  alerts: "principal",
+  transactions: "movements",
+  accounts: "movements",
+  transfers: "movements",
+  cards: "movements",
+  categories: "movements",
+  recurrences: "planning",
+  budgets: "planning",
+  forecast: "planning",
+  goals: "planning",
+  reports: "analysis",
+  import: "analysis",
+  security: "system",
+  users: "system",
+  audit: "system",
 };
 const currentMonth = new Date().toISOString().slice(0, 7);
 
@@ -72,6 +91,12 @@ export function App() {
   const [pages, setPages] = useState(1);
   const [modal, setModal] = useState<null | "new" | Transaction>(null);
   const [notice, setNotice] = useState("");
+  const [profilePhotoOpen, setProfilePhotoOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarRevision, setAvatarRevision] = useState(0);
+  const [openNavigationGroup, setOpenNavigationGroup] = useState(() =>
+    localStorage.getItem("finance-navigation-group") ?? "principal",
+  );
 
   const logout = useCallback(() => {
     localStorage.removeItem("finance-token");
@@ -131,10 +156,43 @@ export function App() {
     if (user) void loadData();
   }, [user, loadData]);
   useEffect(() => {
+    if (!user?.hasAvatar) {
+      setAvatarUrl(null);
+      return;
+    }
+    let objectUrl: string | null = null;
+    let active = true;
+    apiFile("/auth/avatar")
+      .then((blob) => {
+        if (!active) return;
+        objectUrl = URL.createObjectURL(blob);
+        setAvatarUrl(objectUrl);
+      })
+      .catch(() => active && setAvatarUrl(null));
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [user?.hasAvatar, avatarRevision]);
+  useEffect(() => {
     if (!user) return;
     setReadAlertIds(readAlertPreference(localStorage, user.id, "read"));
     setDismissedAlertIds(readAlertPreference(localStorage, user.id, "dismissed"));
   }, [user]);
+  useEffect(() => {
+    localStorage.setItem("finance-navigation-group", openNavigationGroup);
+  }, [openNavigationGroup]);
+  useEffect(() => {
+    setOpenNavigationGroup(viewNavigationGroups[view]);
+  }, [view]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
   useEffect(() => {
     document.title = user ? `${viewTitles[view]} — Control Finance` : "Control Finance — Controle financeiro";
   }, [user, view]);
@@ -151,7 +209,11 @@ export function App() {
       const target = event.target as HTMLElement | null;
       const typing = target?.matches("input, textarea, select, [contenteditable=true]");
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "n" && !typing && user) { event.preventDefault(); setModal("new"); }
-      if (event.key === "Escape") { setMenuOpen(false); setModal(null); }
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        setModal(null);
+        setProfilePhotoOpen(false);
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -184,24 +246,68 @@ export function App() {
     );
   if (!user) return <AuthScreen onAuthenticated={authenticate} />;
 
-  const navigation = [
-    { id: "dashboard", label: "Visão geral", icon: BarChart3 },
-    { id: "alerts", label: "Avisos", icon: Bell },
-    { id: "accounts", label: "Contas", icon: WalletCards },
-    { id: "transfers", label: "Transferências", icon: ArrowLeftRight },
-    { id: "cards", label: "Cartões", icon: CreditCard },
-    { id: "recurrences", label: "Recorrências", icon: Repeat2 },
-    { id: "budgets", label: "Orçamentos", icon: PiggyBank },
-    { id: "forecast", label: "Previsão", icon: LineChart },
-    { id: "goals", label: "Metas", icon: Flag },
-    { id: "transactions", label: "Lançamentos", icon: Landmark },
-    { id: "categories", label: "Categorias", icon: Tags },
-    { id: "reports", label: "Relatórios", icon: FileBarChart },
-    { id: "import", label: "Importar CSV", icon: FileUp },
-    { id: "security", label: "Segurança", icon: ShieldCheck },
-    ...(user.role === "ADMIN" ? [{ id: "users" as const, label: "Usuários", icon: Users }] : []),
-    ...(user.role === "ADMIN" ? [{ id: "audit" as const, label: "Auditoria", icon: ClipboardList }] : []),
-  ] as const;
+  const navigationGroups = [
+    {
+      id: "principal",
+      label: "Principal",
+      items: [
+        { id: "dashboard" as const, label: "Visão geral", icon: BarChart3 },
+        { id: "alerts" as const, label: "Avisos", icon: Bell },
+      ],
+    },
+    {
+      id: "movements",
+      label: "Movimentações",
+      items: [
+        { id: "transactions" as const, label: "Lançamentos", icon: Landmark },
+        { id: "accounts" as const, label: "Contas", icon: WalletCards },
+        { id: "transfers" as const, label: "Transferências", icon: ArrowLeftRight },
+        { id: "cards" as const, label: "Cartões", icon: CreditCard },
+        { id: "categories" as const, label: "Categorias", icon: Tags },
+      ],
+    },
+    {
+      id: "planning",
+      label: "Planejamento",
+      items: [
+        { id: "recurrences" as const, label: "Recorrências", icon: Repeat2 },
+        { id: "budgets" as const, label: "Orçamentos", icon: PiggyBank },
+        { id: "forecast" as const, label: "Previsão", icon: LineChart },
+        { id: "goals" as const, label: "Metas", icon: Flag },
+      ],
+    },
+    {
+      id: "analysis",
+      label: "Análise e dados",
+      items: [
+        { id: "reports" as const, label: "Relatórios", icon: FileBarChart },
+        { id: "import" as const, label: "Importar CSV", icon: FileUp },
+      ],
+    },
+    {
+      id: "system",
+      label: "Sistema",
+      items: [
+        { id: "security" as const, label: "Segurança", icon: ShieldCheck },
+        ...(user.role === "ADMIN"
+          ? [
+              { id: "users" as const, label: "Usuários", icon: Users },
+              { id: "audit" as const, label: "Auditoria", icon: ClipboardList },
+            ]
+          : []),
+      ],
+    },
+  ];
+  const unreadAlerts = alerts.filter(
+    (item) =>
+      !dismissedAlertIds.includes(item.id) && !readAlertIds.includes(item.id),
+  ).length;
+  function navigateTo(nextView: View, group?: string) {
+    setView(nextView);
+    if (group) setOpenNavigationGroup(group);
+    setMenuOpen(false);
+    setTimeout(() => document.getElementById("main-content")?.focus(), 0);
+  }
   return (
     <div className="app-shell">
       <aside className={menuOpen ? "sidebar open" : "sidebar"}>
@@ -217,41 +323,75 @@ export function App() {
           </button>
         </div>
         <nav aria-label="Navegação principal">
-          {navigation.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              className={view === id ? "active" : ""}
-              aria-current={view === id ? "page" : undefined}
-              onClick={() => {
-                setView(id);
-                setMenuOpen(false);
-                setTimeout(() => document.getElementById("main-content")?.focus(), 0);
-              }}
-            >
-              <Icon size={19} />
-              {label}
-              {id === "alerts" && alerts.filter((item) => !dismissedAlertIds.includes(item.id) && !readAlertIds.includes(item.id)).length > 0 && (
-                <span className="nav-alert-count" aria-label={`${alerts.filter((item) => !dismissedAlertIds.includes(item.id) && !readAlertIds.includes(item.id)).length} avisos não lidos`}>
-                  {alerts.filter((item) => !dismissedAlertIds.includes(item.id) && !readAlertIds.includes(item.id)).length}
-                </span>
-              )}
-            </button>
-          ))}
+          {navigationGroups.map((group) => {
+            const expanded = openNavigationGroup === group.id;
+            const groupActive = group.items.some((item) => item.id === view);
+            return (
+              <section className={`nav-group${groupActive ? " current" : ""}`} key={group.id}>
+                <button
+                  className="nav-group-toggle"
+                  aria-expanded={expanded}
+                  aria-controls={`navigation-${group.id}`}
+                  onClick={() => setOpenNavigationGroup(expanded ? "" : group.id)}
+                >
+                  <span>{group.label}</span>
+                  {groupActive && <i aria-label="Seção atual" />}
+                  <ChevronDown aria-hidden="true" />
+                </button>
+                <div
+                  className="nav-group-items"
+                  id={`navigation-${group.id}`}
+                  hidden={!expanded}
+                >
+                  {group.items.map(({ id, label, icon: Icon }) => (
+                    <button
+                      key={id}
+                      className={view === id ? "active" : ""}
+                      aria-current={view === id ? "page" : undefined}
+                      onClick={() => navigateTo(id, group.id)}
+                    >
+                      <Icon size={19} />
+                      <span>{label}</span>
+                      {id === "alerts" && unreadAlerts > 0 && (
+                        <span className="nav-alert-count" aria-label={`${unreadAlerts} avisos não lidos`}>
+                          {unreadAlerts}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </nav>
         <button className="sidebar-add" onClick={() => setModal("new")} aria-keyshortcuts="Control+N Meta+N" title="Novo lançamento (Ctrl+N)">
           <Plus size={18} /> Novo lançamento
         </button>
         <div className="user-block">
-          <span>{user.name.slice(0, 2).toUpperCase()}</span>
+          <button
+            className="profile-avatar-button"
+            onClick={() => setProfilePhotoOpen(true)}
+            title="Alterar foto de perfil"
+            aria-label="Adicionar ou alterar foto de perfil"
+          >
+            {avatarUrl ? <img src={avatarUrl} alt="" /> : <span>{user.name.slice(0, 2).toUpperCase()}</span>}
+          </button>
           <div>
             <strong>{user.name}</strong>
             <small>{user.email}</small>
           </div>
-          <button onClick={() => void signOut()} title="Sair" aria-label="Sair da conta">
+          <button className="logout-button" onClick={() => void signOut()} title="Sair" aria-label="Sair da conta">
             <LogOut size={18} />
           </button>
         </div>
       </aside>
+      {menuOpen && (
+        <button
+          className="sidebar-scrim"
+          onClick={() => setMenuOpen(false)}
+          aria-label="Fechar menu"
+        />
+      )}
       <main className="main-area" id="main-content" tabIndex={-1}>
         <header className="mobile-header">
           <button onClick={() => setMenuOpen(true)} aria-label="Abrir menu">
@@ -317,6 +457,21 @@ export function App() {
         {view === "users" && user.role === "ADMIN" && <AdminUsersView currentUser={user} />}
         {view === "audit" && user.role === "ADMIN" && <AuditLogsView />}
       </main>
+      <nav className="mobile-bottom-nav" aria-label="Atalhos principais">
+        <button className={view === "dashboard" ? "active" : ""} onClick={() => navigateTo("dashboard", "principal")}>
+          <BarChart3 /><span>Visão geral</span>
+        </button>
+        <button className={view === "transactions" ? "active" : ""} onClick={() => navigateTo("transactions", "movements")}>
+          <Landmark /><span>Lançamentos</span>
+        </button>
+        <button className={view === "alerts" ? "active" : ""} onClick={() => navigateTo("alerts", "principal")}>
+          <span className="mobile-nav-icon"><Bell />{unreadAlerts > 0 && <i>{unreadAlerts}</i>}</span>
+          <span>Avisos</span>
+        </button>
+        <button className={!["dashboard", "transactions", "alerts"].includes(view) ? "active" : ""} onClick={() => setMenuOpen(true)} aria-expanded={menuOpen}>
+          <MoreHorizontal /><span>Mais</span>
+        </button>
+      </nav>
       {modal && (
         <TransactionModal
           accounts={accounts}
@@ -325,6 +480,19 @@ export function App() {
           transaction={modal === "new" ? null : modal}
           onClose={() => setModal(null)}
           onSaved={saved}
+        />
+      )}
+      {profilePhotoOpen && (
+        <ProfilePhotoModal
+          user={user}
+          avatarUrl={avatarUrl}
+          onClose={() => setProfilePhotoOpen(false)}
+          onChanged={(updatedUser, message) => {
+            setUser(updatedUser);
+            setAvatarRevision((revision) => revision + 1);
+            setNotice(message);
+            setTimeout(() => setNotice(""), 3000);
+          }}
         />
       )}
     </div>

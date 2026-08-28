@@ -63,6 +63,12 @@ describe("API", () => {
     await request(app).post("/api/transactions/00000000-0000-4000-8000-000000000000/attachments").expect(401);
   });
 
+  it("protege a foto de perfil sem token", async () => {
+    await request(app).get("/api/auth/avatar").expect(401);
+    await request(app).put("/api/auth/avatar").expect(401);
+    await request(app).delete("/api/auth/avatar").expect(401);
+  });
+
   it("protege os avisos financeiros sem token", async () => {
     await request(app).get("/api/alerts").expect(401);
   });

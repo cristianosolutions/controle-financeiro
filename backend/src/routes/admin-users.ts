@@ -8,7 +8,11 @@ import { generateResetToken, hashResetToken, strongPasswordSchema } from "../lib
 import { removeStoredAttachment } from "../lib/attachments.js";
 
 export const adminUsersRouter = Router();
-const publicUser = { id: true, name: true, email: true, role: true, isActive: true, createdAt: true, updatedAt: true } as const;
+const publicUser = { id: true, name: true, email: true, role: true, isActive: true, avatarStoredName: true, createdAt: true, updatedAt: true } as const;
+const serializeUser = <T extends { avatarStoredName: string | null }>(user: T) => {
+  const { avatarStoredName, ...publicData } = user;
+  return { ...publicData, hasAvatar: Boolean(avatarStoredName) };
+};
 const createSchema = z.object({
   name: z.string().trim().min(2).max(100), email: z.string().email().toLowerCase(),
   password: strongPasswordSchema, role: z.enum(["USER", "ADMIN"]).default("USER"), isActive: z.boolean().default(true),
@@ -23,7 +27,8 @@ async function ensureAnotherAdmin(id: string) {
 }
 
 adminUsersRouter.get("/", async (_request, response) => {
-  response.json(await prisma.user.findMany({ select: { ...publicUser, _count: { select: { transactions: true } } }, orderBy: { createdAt: "desc" } }));
+  const users = await prisma.user.findMany({ select: { ...publicUser, _count: { select: { transactions: true } } }, orderBy: { createdAt: "desc" } });
+  response.json(users.map(serializeUser));
 });
 
 adminUsersRouter.post("/", async (request, response) => {
@@ -35,7 +40,7 @@ adminUsersRouter.post("/", async (request, response) => {
     return created;
   });
   await writeAudit(request, { action: "USER_CREATED", entityType: "User", entityId: user.id, description: `Usuário ${user.email} criado pelo administrador`, metadata: { role: user.role } });
-  response.status(201).json(user);
+  response.status(201).json(serializeUser(user));
 });
 
 adminUsersRouter.put("/:id", async (request, response) => {
@@ -50,7 +55,8 @@ adminUsersRouter.put("/:id", async (request, response) => {
   const result = await prisma.user.updateMany({ where: { id }, data: updateData });
   if (!result.count) throw new AppError("Usuário não encontrado", 404);
   await writeAudit(request, { action: "USER_UPDATED", entityType: "User", entityId: id, description: "Dados de usuário alterados pelo administrador", metadata: updateData });
-  response.json(await prisma.user.findUnique({ where: { id }, select: publicUser }));
+  const user = await prisma.user.findUnique({ where: { id }, select: publicUser });
+  response.json(user ? serializeUser(user) : null);
 });
 
 adminUsersRouter.put("/:id/password", async (request, response) => {
@@ -81,10 +87,14 @@ adminUsersRouter.delete("/:id", async (request, response) => {
   const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
   if (id === request.userId) throw new AppError("Você não pode excluir a própria conta administrativa", 422);
   await ensureAnotherAdmin(id);
-  const attachments = await prisma.transactionAttachment.findMany({ where: { userId: id }, select: { storedName: true } });
+  const [attachments, deletedUser] = await Promise.all([
+    prisma.transactionAttachment.findMany({ where: { userId: id }, select: { storedName: true } }),
+    prisma.user.findUnique({ where: { id }, select: { avatarStoredName: true } }),
+  ]);
   const result = await prisma.user.deleteMany({ where: { id } });
   if (!result.count) throw new AppError("Usuário não encontrado", 404);
   await writeAudit(request, { action: "USER_DELETED", entityType: "User", entityId: id, description: "Usuário excluído pelo administrador" });
   await Promise.all(attachments.map((attachment) => removeStoredAttachment(attachment.storedName)));
+  if (deletedUser?.avatarStoredName) await removeStoredAttachment(deletedUser.avatarStoredName);
   response.status(204).send();
 });
