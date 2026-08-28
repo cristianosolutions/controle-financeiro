@@ -377,8 +377,8 @@ export function App() {
             {avatarUrl ? <img src={avatarUrl} alt="" /> : <span>{user.name.slice(0, 2).toUpperCase()}</span>}
           </button>
           <div>
-            <strong>{user.name}</strong>
-            <small>{user.email}</small>
+            <strong title={user.name}>{user.name}</strong>
+            <small title={user.email}>{user.email}</small>
           </div>
           <button className="logout-button" onClick={() => void signOut()} title="Sair" aria-label="Sair da conta">
             <LogOut size={18} />

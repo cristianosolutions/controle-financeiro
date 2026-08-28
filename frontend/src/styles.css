@@ -2115,6 +2115,50 @@ textarea:focus {
 .empty-state.mini {
   padding: 38px 10px;
 }
+.empty-state-featured {
+  width: min(620px, 100%);
+  margin: clamp(24px, 6vh, 64px) auto 0;
+  padding: clamp(30px, 5vw, 48px);
+  color: var(--muted);
+  background:
+    radial-gradient(circle at 50% 0, #eef2ff 0, transparent 58%),
+    white;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 16px 45px #1725540a;
+}
+.empty-state-featured .empty-state-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  color: var(--indigo);
+  background: #eef2ff;
+  border: 1px solid #e0e7ff;
+  border-radius: 17px;
+  box-shadow: 0 10px 24px #4f46e51a;
+}
+.empty-state-featured .empty-state-icon svg {
+  width: 27px;
+  height: 27px;
+}
+.empty-state-featured .eyebrow {
+  margin-bottom: 7px;
+  color: var(--indigo);
+}
+.empty-state-featured h3 {
+  margin-bottom: 8px;
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+}
+.empty-state-featured > p:not(.eyebrow) {
+  max-width: 440px;
+  margin: 0 auto 22px;
+  line-height: 1.6;
+}
+.empty-state-featured .primary-button {
+  margin: 0 auto;
+}
 .modal-backdrop {
   position: fixed;
   inset: 0;
