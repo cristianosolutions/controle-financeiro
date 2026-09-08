@@ -1,6 +1,7 @@
 import { CalendarDays, CheckCircle2, Flag, Pencil, Plus, Target, Trash2, Trophy, WalletCards, XCircle } from "lucide-react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { api } from "../lib/api";
+import { sortByLabel } from "../lib/sorting";
 import type { Account, FinancialGoal } from "../types";
 
 interface Props { accounts: Account[]; onFinancialChanged: () => void; }
@@ -8,8 +9,10 @@ const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "
 const today = new Date().toISOString().slice(0, 10);
 const colors = ["#4f46e5", "#0891b2", "#16a34a", "#ea580c", "#dc2626", "#9333ea", "#64748b"];
 
-export function GoalsView({ accounts, onFinancialChanged }: Props) {
-  const [goals, setGoals] = useState<FinancialGoal[]>([]);
+export function GoalsView({ accounts: unsortedAccounts, onFinancialChanged }: Props) {
+  const accounts = sortByLabel(unsortedAccounts, (item) => item.name);
+  const [unsortedGoals, setGoals] = useState<FinancialGoal[]>([]);
+  const goals = sortByLabel(unsortedGoals, (item) => item.name);
   const [editing, setEditing] = useState<FinancialGoal | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [contributing, setContributing] = useState<FinancialGoal | null>(null);

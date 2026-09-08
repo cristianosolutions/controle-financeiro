@@ -1,6 +1,7 @@
 import { Power, Plus, Trash2, WalletCards } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { api } from "../lib/api";
+import { sortByLabel } from "../lib/sorting";
 import { accountTypeLabels, type Account, type AccountType } from "../types";
 
 interface Props {
@@ -66,7 +67,7 @@ export function AccountsView({ accounts, onChanged }: Props) {
       {adding && (
         <form className="inline-card account-form" onSubmit={submit}>
           <label>Nome<input name="name" placeholder="Ex: Conta principal" required /></label>
-          <label>Tipo<select name="type" defaultValue={"CHECKING" satisfies AccountType}>{Object.entries(accountTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label>Tipo<select name="type" defaultValue={"CHECKING" satisfies AccountType}>{sortByLabel(Object.entries(accountTypeLabels), (item) => item[1]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label>Saldo inicial<input name="initialBalance" type="number" step="0.01" defaultValue="0" /></label>
           <fieldset className="color-field"><legend>Cor</legend><label className="color-picker" title="Escolher cor"><input type="color" name="color" value={color} onChange={(event) => setColor(event.target.value)} /><span className="color-wheel"><i style={{ background: color }} /></span></label></fieldset>
           <button className="primary-button compact">Adicionar</button>
@@ -74,7 +75,7 @@ export function AccountsView({ accounts, onChanged }: Props) {
       )}
       {error && <div className="form-error spaced">{error}</div>}
       <div className="account-grid">
-        {accounts.map((account) => (
+        {sortByLabel(accounts, (account) => account.name).map((account) => (
           <article className={`account-card${account.isActive ? "" : " inactive"}`} key={account.id}>
             <span className="account-icon" style={{ background: `${account.color}18`, color: account.color }}><WalletCards /></span>
             <div className="account-details"><small>{accountTypeLabels[account.type]}</small><h3>{account.name}</h3><strong>{currency.format(account.balance)}</strong></div>

@@ -31,7 +31,7 @@ export function capitalizeFirstLetter(value: string) {
 export function capitalizeTextInput(event: FormEvent<HTMLElement>) {
   const field = event.target;
   if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) return;
-  if (field.dataset.preserveCase === "true") return;
+  if (field.dataset.preserveCase === "true" || field.name === "notes") return;
 
   if (field instanceof HTMLInputElement) {
     if (excludedInputTypes.has(field.type) || excludedInputNames.has(field.name)) return;

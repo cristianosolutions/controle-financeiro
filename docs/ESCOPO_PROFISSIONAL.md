@@ -18,7 +18,7 @@ Este documento registra o escopo funcional do Control Finance. A aplicação é 
 | Avisos | Vencimentos, faturas, orçamento e metas, com leitura e dispensa por usuário |
 | Segurança | Senhas fortes, sessões revogáveis, rate limit, recuperação e isolamento por usuário |
 | Administração | Usuários, perfis, ativação, senha, bootstrap seguro e auditoria |
-| Experiência | Responsividade, PWA, estado offline seguro, teclado, acessibilidade, capitalização por palavra, sugestões locais de acentuação e entrada monetária brasileira |
+| Experiência | Responsividade, PWA, estado offline seguro, teclado, acessibilidade, ordenação alfabética em português, capitalização por palavra, sugestões locais de acentuação e entrada monetária brasileira; observações preservam a escrita livre |
 | Operação | Health checks, Docker, migrations, CI, backup e restauração protegida |
 
 ## Evidências de qualidade

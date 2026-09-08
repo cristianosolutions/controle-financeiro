@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Pencil, Plus, Tag, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
+import { sortByLabel } from "../lib/sorting";
 import type { Category, TransactionType } from "../types";
 
 interface Props {
@@ -116,7 +117,7 @@ export function CategoriesView({ categories, onChanged }: Props) {
       )}
       {error && <div className="form-error spaced">{error}</div>}
       <div className="category-grid">
-        {categories.map((category) => (
+        {sortByLabel(categories, (category) => category.name).map((category) => (
           <article className="category-card" key={category.id}>
             <span
               className="category-icon"

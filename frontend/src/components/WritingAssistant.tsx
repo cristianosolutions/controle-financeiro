@@ -12,10 +12,10 @@ type SuggestionState = {
   width: number;
 };
 
-const excludedNames = new Set(["email", "password", "confirmPassword", "currentPassword", "newPassword", "token"]);
+const excludedNames = new Set(["email", "password", "confirmPassword", "currentPassword", "newPassword", "token", "notes"]);
 
 function isTextField(target: EventTarget | null): target is TextField {
-  if (target instanceof HTMLTextAreaElement) return true;
+  if (target instanceof HTMLTextAreaElement) return !excludedNames.has(target.name);
   return target instanceof HTMLInputElement && ["text", "search"].includes(target.type) && !excludedNames.has(target.name);
 }
 

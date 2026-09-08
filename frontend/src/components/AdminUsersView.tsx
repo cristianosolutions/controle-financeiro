@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../lib/api";
+import { sortByLabel } from "../lib/sorting";
 import type { AdminUser, User } from "../types";
 
 interface Props {
@@ -17,7 +18,8 @@ interface Props {
 }
 
 export function AdminUsersView({ currentUser }: Props) {
-  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [unsortedUsers, setUsers] = useState<AdminUser[]>([]);
+  const users = sortByLabel(unsortedUsers, (item) => item.name);
   const [editing, setEditing] = useState<"new" | AdminUser | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

@@ -1,6 +1,7 @@
 import { ArrowRight, CheckCircle2, Clock3, Pencil, Plus, Trash2, XCircle } from "lucide-react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { api } from "../lib/api";
+import { sortByLabel } from "../lib/sorting";
 import type { Account, Transfer, TransferStatus } from "../types";
 
 interface Props { accounts: Account[]; onChanged: () => void; }
@@ -11,7 +12,8 @@ const statusLabels: Record<TransferStatus, string> = { PENDING: "Agendada", COMP
 
 function monthRange(month: string) { const [year, number] = month.split("-").map(Number); const last = new Date(Date.UTC(year!, number!, 0)).getUTCDate(); return { from: `${month}-01T00:00:00.000Z`, to: `${month}-${String(last).padStart(2, "0")}T23:59:59.999Z` }; }
 
-export function TransfersView({ accounts, onChanged }: Props) {
+export function TransfersView({ accounts: unsortedAccounts, onChanged }: Props) {
+  const accounts = sortByLabel(unsortedAccounts, (account) => account.name);
   const [items, setItems] = useState<Transfer[]>([]), [month, setMonth] = useState(currentMonth), [status, setStatus] = useState<"" | TransferStatus>("");
   const [editing, setEditing] = useState<"new" | Transfer | null>(null), [error, setError] = useState(""), [notice, setNotice] = useState("");
   const load = useCallback(async () => { try { const range = monthRange(month), params = new URLSearchParams(range); if (status) params.set("status", status); setItems(await api<Transfer[]>(`/transfers?${params}`)); setError(""); } catch (reason) { setError(reason instanceof Error ? reason.message : "Não foi possível carregar as transferências"); } }, [month, status]);

@@ -39,7 +39,7 @@ O projeto é dividido em uma API REST e uma interface React, com autenticação 
 - **Administração e auditoria:** usuários, perfis, status e histórico de operações sensíveis.
 - **Segurança:** senhas fortes, sessões revogáveis, recuperação administrativa e limite de tentativas.
 - **Layout responsivo:** experiência adaptada para computador, tablet e celular.
-- **Entrada assistida:** iniciais padronizadas, sugestões de acentuação em português e campos monetários no formato brasileiro com duas casas decimais.
+- **Entrada assistida:** iniciais padronizadas, sugestões de acentuação em português, listas nominais em ordem alfabética e campos monetários no formato brasileiro com duas casas decimais. Campos de observação preservam exatamente a escrita informada pelo usuário.
 
 - **Aplicativo instalável (PWA):** pode ser adicionado à tela inicial em navegadores compatíveis, informa perda de conexão e oferece uma página segura de indisponibilidade sem armazenar dados financeiros no cache.
 - **Acessibilidade:** navegação por teclado, foco visível, atalhos, diálogos acessíveis e respeito à preferência de movimento reduzido.

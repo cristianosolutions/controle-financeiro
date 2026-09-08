@@ -1,6 +1,7 @@
 import { Pause, Pencil, Play, Plus, Repeat2, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { api } from "../lib/api";
+import { sortByLabel } from "../lib/sorting";
 import { paymentMethodLabels, recurrenceFrequencyLabels, type Account, type Category, type CreditCard, type PaymentMethod, type RecurrenceFrequency, type RecurringTransaction, type TransactionType } from "../types";
 
 interface Props {
@@ -12,7 +13,7 @@ interface Props {
 }
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const paymentMethods: Array<{ value: PaymentMethod; label: string }> = Object.entries(paymentMethodLabels).map(([value, label]) => ({ value: value as PaymentMethod, label }));
+const paymentMethods: Array<{ value: PaymentMethod; label: string }> = sortByLabel(Object.entries(paymentMethodLabels).map(([value, label]) => ({ value: value as PaymentMethod, label })), (item) => item.label);
 
 function payloadFrom(item: RecurringTransaction, isActive = item.isActive) {
   return {
@@ -24,7 +25,11 @@ function payloadFrom(item: RecurringTransaction, isActive = item.isActive) {
   };
 }
 
-export function RecurrencesView({ items, categories, accounts, cards, onChanged }: Props) {
+export function RecurrencesView({ items: unsortedItems, categories: unsortedCategories, accounts: unsortedAccounts, cards: unsortedCards, onChanged }: Props) {
+  const items = sortByLabel(unsortedItems, (item) => item.description);
+  const categories = sortByLabel(unsortedCategories, (item) => item.name);
+  const accounts = sortByLabel(unsortedAccounts, (item) => item.name);
+  const cards = sortByLabel(unsortedCards, (item) => item.name);
   const [editing, setEditing] = useState<RecurringTransaction | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [type, setType] = useState<TransactionType>("EXPENSE");

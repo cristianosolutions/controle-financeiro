@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
 import { api } from "../lib/api";
 import { formatCurrencyInput, parseCurrencyInput } from "../lib/currency-input";
+import { sortByLabel } from "../lib/sorting";
 import type {
   Account,
   Category,
@@ -181,7 +182,7 @@ export function TransactionModal({
               <option value="" disabled>
                 Selecione uma categoria
               </option>
-              {available.map((item) => (
+                {sortByLabel(available, (item) => item.name).map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
                 </option>
@@ -192,7 +193,7 @@ export function TransactionModal({
               Conta
               <select name="accountId" value={accountId} onChange={(event) => setAccountId(event.target.value)} required>
                 <option value="" disabled>Selecione uma conta</option>
-                {accounts.filter((account) => account.isActive || account.id === transaction?.accountId).map((account) => (
+                {sortByLabel(accounts.filter((account) => account.isActive || account.id === transaction?.accountId), (account) => account.name).map((account) => (
                   <option key={account.id} value={account.id}>{account.name}</option>
                 ))}
               </select>
@@ -213,7 +214,7 @@ export function TransactionModal({
                 <option value="" disabled>
                   Selecione como pagou
                 </option>
-                {paymentMethods.map((method) => (
+                {sortByLabel(paymentMethods, (method) => method.label).map((method) => (
                   <option key={method.value} value={method.value}>
                     {method.label}
                   </option>
@@ -226,7 +227,7 @@ export function TransactionModal({
               Cartão utilizado
               <select name="cardId" value={cardId} onChange={(event) => setCardId(event.target.value)} required>
                 <option value="" disabled>Selecione um cartão cadastrado</option>
-                {cards.filter((card) => card.isActive || card.id === transaction?.cardId).map((card) => <option key={card.id} value={card.id}>{card.name}</option>)}
+                {sortByLabel(cards.filter((card) => card.isActive || card.id === transaction?.cardId), (card) => card.name).map((card) => <option key={card.id} value={card.id}>{card.name}</option>)}
               </select>
               {!cards.length && <small>Cadastre um cartão no menu Cartões antes de lançar uma compra.</small>}
             </label>

@@ -1,6 +1,7 @@
 import { CalendarDays, CreditCard as CardIcon, Power, Plus, ReceiptText, Trash2 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { api } from "../lib/api";
+import { sortByLabel } from "../lib/sorting";
 import type { Account, CardInvoicesResponse, CreditCard } from "../types";
 
 interface Props {
@@ -12,7 +13,9 @@ interface Props {
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const today = new Date().toISOString().slice(0, 10);
 
-export function CardsView({ cards, accounts, onChanged }: Props) {
+export function CardsView({ cards: unsortedCards, accounts: unsortedAccounts, onChanged }: Props) {
+  const cards = sortByLabel(unsortedCards, (card) => card.name);
+  const accounts = sortByLabel(unsortedAccounts, (account) => account.name);
   const [adding, setAdding] = useState(false);
   const [color, setColor] = useState("#4f46e5");
   const [selectedId, setSelectedId] = useState<string | null>(null);

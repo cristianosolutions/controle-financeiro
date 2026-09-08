@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Download, FileBarChart, Printer, TrendingDown, TrendingUp, WalletCards } from "lucide-react";
 import { api } from "../lib/api";
+import { sortByLabel } from "../lib/sorting";
 import {
   paymentMethodLabels,
   transactionStatusLabels,
@@ -48,7 +49,10 @@ function NetWorthChart({ data }: { data: FinancialReport["analytics"]["netWorth"
   return <div className="net-worth-chart"><svg viewBox={`0 0 ${width} ${height}`}><line x1="20" x2={width - 20} y1={y(0)} y2={y(0)} /><polyline points={points} />{data.map((item, index) => <g key={item.month}><circle className={item.netWorth < 0 ? "negative" : ""} cx={x(index)} cy={y(item.netWorth)} r="5"><title>{currency.format(item.netWorth)}</title></circle><text x={x(index)} y={height - 5} textAnchor="middle">{shortMonth(item.month)}</text></g>)}</svg></div>;
 }
 
-export function ReportsView({ categories, accounts, cards, user }: Props) {
+export function ReportsView({ categories: unsortedCategories, accounts: unsortedAccounts, cards: unsortedCards, user }: Props) {
+  const categories = sortByLabel(unsortedCategories, (item) => item.name);
+  const accounts = sortByLabel(unsortedAccounts, (item) => item.name);
+  const cards = sortByLabel(unsortedCards, (item) => item.name);
   const [from, setFrom] = useState(firstDay);
   const [to, setTo] = useState(today);
   const [type, setType] = useState<"" | TransactionType>("");
@@ -262,7 +266,7 @@ export function ReportsView({ categories, accounts, cards, user }: Props) {
           Pagamento
           <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as "" | PaymentMethod)}>
             <option value="">Todos</option>
-            {Object.entries(paymentMethodLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            {sortByLabel(Object.entries(paymentMethodLabels), (item) => item[1]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
         <label>
