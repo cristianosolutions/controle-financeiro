@@ -101,6 +101,7 @@ export function App() {
   );
 
   const logout = useCallback(() => {
+    sessionStorage.removeItem("finance-token");
     localStorage.removeItem("finance-token");
     setUser(null);
   }, []);
@@ -144,7 +145,10 @@ export function App() {
   }, [logout, month, page]);
 
   useEffect(() => {
-    const token = localStorage.getItem("finance-token");
+    // Tokens antigos eram persistidos por vários dias. Removê-los impede que
+    // uma nova sessão do navegador entre automaticamente em uma conta anterior.
+    localStorage.removeItem("finance-token");
+    const token = sessionStorage.getItem("finance-token");
     if (!token) {
       setBooting(false);
       return;
@@ -222,7 +226,7 @@ export function App() {
   }, [user]);
 
   function authenticate(token: string, authenticatedUser: User) {
-    localStorage.setItem("finance-token", token);
+    sessionStorage.setItem("finance-token", token);
     setUser(authenticatedUser);
   }
   function saved() {
