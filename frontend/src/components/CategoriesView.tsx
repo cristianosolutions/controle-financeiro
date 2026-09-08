@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Plus, Tag, Trash2 } from "lucide-react";
+import { Pencil, Plus, Tag, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
 import type { Category, TransactionType } from "../types";
 
@@ -10,24 +10,44 @@ interface Props {
 
 export function CategoriesView({ categories, onChanged }: Props) {
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Category | null>(null);
   const [error, setError] = useState("");
   const [selectedColor, setSelectedColor] = useState("#4f46e5");
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError("");
     const data = Object.fromEntries(
       new FormData(event.currentTarget).entries(),
     );
     try {
-      await api("/categories", {
-        method: "POST",
+      await api(editing ? `/categories/${editing.id}` : "/categories", {
+        method: editing ? "PUT" : "POST",
         body: JSON.stringify({ ...data, type: data.type || null }),
       });
       setAdding(false);
+      setEditing(null);
       setSelectedColor("#4f46e5");
       onChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado");
     }
+  }
+  function openNew() {
+    setEditing(null);
+    setSelectedColor("#4f46e5");
+    setError("");
+    setAdding((current) => !current || editing !== null);
+  }
+  function openEdit(category: Category) {
+    setEditing(category);
+    setSelectedColor(category.color);
+    setError("");
+    setAdding(true);
+  }
+  function closeForm() {
+    setAdding(false);
+    setEditing(null);
+    setSelectedColor("#4f46e5");
   }
   async function remove(id: string) {
     if (!confirm("Excluir esta categoria?")) return;
@@ -50,20 +70,20 @@ export function CategoriesView({ categories, onChanged }: Props) {
         </div>
         <button
           className="primary-button compact"
-          onClick={() => setAdding(!adding)}
+          onClick={openNew}
         >
           <Plus size={18} /> Nova categoria
         </button>
       </div>
       {adding && (
-        <form className="inline-card" onSubmit={submit}>
+        <form className="inline-card category-form" onSubmit={submit} key={editing?.id ?? "new"}>
           <label>
             Nome
-            <input name="name" placeholder="Ex: Moradia" required />
+            <input name="name" defaultValue={editing?.name ?? ""} placeholder="Ex: Moradia" required />
           </label>
           <label>
             Tipo
-            <select name="type">
+            <select name="type" defaultValue={editing?.type ?? ""}>
               <option value="">Receita e despesa</option>
               <option value={"EXPENSE" satisfies TransactionType}>
                 Despesa
@@ -88,7 +108,10 @@ export function CategoriesView({ categories, onChanged }: Props) {
               </span>
             </label>
           </fieldset>
-          <button className="primary-button compact">Adicionar</button>
+          <div className="form-actions category-form-actions">
+            <button type="button" className="secondary-button compact" onClick={closeForm}>Cancelar</button>
+            <button className="primary-button compact">{editing ? "Salvar alterações" : "Adicionar"}</button>
+          </div>
         </form>
       )}
       {error && <div className="form-error spaced">{error}</div>}
@@ -115,13 +138,14 @@ export function CategoriesView({ categories, onChanged }: Props) {
                 · {category._count?.transactions ?? 0} lançamentos
               </p>
             </div>
-            <button
-              className="icon-button danger"
-              onClick={() => remove(category.id)}
-              aria-label="Excluir"
-            >
-              <Trash2 size={18} />
-            </button>
+            <div className="row-actions">
+              <button className="icon-button" onClick={() => openEdit(category)} aria-label={`Editar ${category.name}`} title="Editar">
+                <Pencil size={17} />
+              </button>
+              <button className="icon-button danger" onClick={() => remove(category.id)} aria-label={`Excluir ${category.name}`} title="Excluir">
+                <Trash2 size={18} />
+              </button>
+            </div>
           </article>
         ))}
       </div>

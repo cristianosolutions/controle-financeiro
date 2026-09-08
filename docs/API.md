@@ -10,7 +10,7 @@ As rotas protegidas recebem `Authorization: Bearer <token>`. Corpos e respostas 
 { "message": "Descrição do erro" }
 ```
 
-Erros de validação também podem incluir `issues`. Datas são enviadas em ISO 8601, valores monetários possuem duas casas decimais e IDs usam UUID.
+Erros de validação também podem incluir `issues`. Datas são enviadas em ISO 8601, valores monetários possuem duas casas decimais e IDs usam UUID. O frontend aceita valores no padrão brasileiro (por exemplo, `1.250,75`) e os converte para número antes de enviar o JSON.
 
 ## Rotas públicas e saúde
 
@@ -85,6 +85,7 @@ As rotas abaixo exigem perfil `ADMIN`.
 - Cadastro, login e recuperação possuem limitação de tentativas.
 - Senhas são validadas e armazenadas somente como hash.
 - Sessões podem ser revogadas e expiram automaticamente.
+- O frontend armazena o token apenas em `sessionStorage`, exigindo novo login após o encerramento da sessão do navegador.
 - Entradas são validadas com Zod e corpos JSON são limitados a 1 MB.
 - Arquivos são validados por assinatura binária e armazenados fora do frontend público.
 

@@ -18,14 +18,14 @@ Este documento registra o escopo funcional do Control Finance. A aplicação é 
 | Avisos | Vencimentos, faturas, orçamento e metas, com leitura e dispensa por usuário |
 | Segurança | Senhas fortes, sessões revogáveis, rate limit, recuperação e isolamento por usuário |
 | Administração | Usuários, perfis, ativação, senha, bootstrap seguro e auditoria |
-| Experiência | Responsividade, PWA, estado offline seguro, teclado e acessibilidade |
+| Experiência | Responsividade, PWA, estado offline seguro, teclado, acessibilidade, capitalização por palavra, sugestões locais de acentuação e entrada monetária brasileira |
 | Operação | Health checks, Docker, migrations, CI, backup e restauração protegida |
 
 ## Evidências de qualidade
 
 - Regras financeiras possuem testes unitários no backend.
 - O fluxo HTTP integrado valida cadastro, login, conta inicial, lançamento, dashboard, avisos e isolamento entre usuários.
-- O frontend possui testes para CSV, preferências dos avisos e renderização acessível.
+- O frontend possui testes para CSV, preferências dos avisos, renderização acessível, capitalização, sugestões de acentuação e formatação monetária.
 - O workflow de CI cria PostgreSQL temporário, aplica todas as migrations, audita dependências, testa e compila os dois projetos e constrói as imagens.
 - `npm audit` não deve apresentar vulnerabilidades conhecidas em nenhum dos projetos.
 

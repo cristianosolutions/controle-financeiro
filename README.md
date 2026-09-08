@@ -30,7 +30,7 @@ O projeto é dividido em uma API REST e uma interface React, com autenticação 
 - **Cartões e faturas:** limites, fechamento, vencimento, compras por ciclo e pagamento de faturas.
 - **Receitas e despesas:** criação, edição, exclusão, filtros, paginação e situação financeira.
 - **Recorrências e parcelamentos:** compromissos periódicos e compras divididas em parcelas.
-- **Categorias personalizadas:** tipo, cor e vínculo com movimentações.
+- **Categorias personalizadas:** criação e edição de nome, tipo e cor, com vínculo às movimentações.
 - **Orçamentos mensais:** limites por categoria e acompanhamento de gastos pagos e pendentes.
 - **Metas e previsão:** aportes, prazos e projeção dos próximos meses.
 - **Relatórios:** análises comparativas, filtros, CSV e impressão em PDF.
@@ -39,6 +39,7 @@ O projeto é dividido em uma API REST e uma interface React, com autenticação 
 - **Administração e auditoria:** usuários, perfis, status e histórico de operações sensíveis.
 - **Segurança:** senhas fortes, sessões revogáveis, recuperação administrativa e limite de tentativas.
 - **Layout responsivo:** experiência adaptada para computador, tablet e celular.
+- **Entrada assistida:** iniciais padronizadas, sugestões de acentuação em português e campos monetários no formato brasileiro com duas casas decimais.
 
 - **Aplicativo instalável (PWA):** pode ser adicionado à tela inicial em navegadores compatíveis, informa perda de conexão e oferece uma página segura de indisponibilidade sem armazenar dados financeiros no cache.
 - **Acessibilidade:** navegação por teclado, foco visível, atalhos, diálogos acessíveis e respeito à preferência de movimento reduzido.
@@ -209,6 +210,7 @@ O comando não cria senhas padrão, ativa somente uma conta já cadastrada e reg
 - Não envie arquivos `.env`, senhas, tokens ou backups ao GitHub.
 - Use um `JWT_SECRET` forte e exclusivo em produção.
 - Configure corretamente o CORS, backups e HTTPS antes de armazenar dados reais.
+- O token do frontend fica limitado à sessão da aba; fechar o navegador exige um novo login, embora a sessão emitida pela API continue revogável e tenha validade máxima de sete dias.
 
 ---
 

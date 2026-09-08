@@ -1726,6 +1726,24 @@ textarea:focus {
   gap: 14px;
   margin-bottom: 20px;
 }
+.inline-card.category-form {
+  grid-template-columns: minmax(220px, 2fr) minmax(190px, 1fr) 80px auto;
+}
+.category-form-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(154px, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+.category-form-actions > button {
+  width: 100%;
+  min-height: 42px;
+  padding-inline: 16px;
+  white-space: nowrap;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
 .inline-card.account-form {
   grid-template-columns: 1.5fr 1.2fr 1fr 80px auto;
 }
@@ -1805,7 +1823,7 @@ textarea:focus {
 }
 .category-card {
   display: grid;
-  grid-template-columns: 46px 1fr 38px;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
   gap: 14px;
   align-items: center;
   padding: 19px;
@@ -2790,6 +2808,13 @@ textarea:focus {
   .inline-card {
     grid-template-columns: 1fr;
   }
+  .inline-card.category-form {
+    grid-template-columns: 1fr;
+  }
+  .category-form-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
   .inline-card.account-form {
     grid-template-columns: 1fr;
   }
@@ -2942,7 +2967,7 @@ textarea:focus {
   }
   .category-card {
     padding: 15px;
-    grid-template-columns: 42px minmax(0, 1fr) 34px;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
     gap: 11px;
   }
   .category-icon {
@@ -3659,6 +3684,37 @@ textarea:focus {
 }
 
 .skip-link { z-index: 100; }
+.writing-suggestions {
+  position: fixed;
+  z-index: 110;
+  display: grid;
+  gap: 4px;
+  max-width: min(360px, calc(100vw - 24px));
+  padding: 8px;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 12px 30px #0f172a24;
+}
+.writing-suggestions small {
+  padding: 3px 8px;
+  color: var(--muted);
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.writing-suggestions button {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: #eef2ff;
+  color: var(--indigo);
+  text-align: left;
+  font-weight: 750;
+}
+.writing-suggestions button:hover,
+.writing-suggestions button:focus-visible { background: #e0e7ff; }
 .offline-banner { z-index: 95; }
 .modal-backdrop { z-index: 80; }
 .install-banner { z-index: 70; }

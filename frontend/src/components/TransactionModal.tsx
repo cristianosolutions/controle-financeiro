@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
 import { api } from "../lib/api";
+import { formatCurrencyInput, parseCurrencyInput } from "../lib/currency-input";
 import type {
   Account,
   Category,
@@ -42,7 +43,8 @@ export function TransactionModal({
   );
   const [status, setStatus] = useState<StoredTransactionStatus>(transaction?.status ?? (transaction?.type === "INCOME" ? "RECEIVED" : "PAID"));
   const [installments, setInstallments] = useState(1);
-  const [amount, setAmount] = useState(Number(transaction?.amount ?? 0));
+  const [amountText, setAmountText] = useState(() => transaction ? formatCurrencyInput(transaction.amount) : "");
+  const amount = parseCurrencyInput(amountText);
   const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? "");
   const [accountId, setAccountId] = useState(transaction?.accountId ?? accounts.find((account) => account.isActive)?.id ?? "");
   const [cardId, setCardId] = useState(transaction?.cardId ?? cards.find((card) => card.isActive)?.id ?? "");
@@ -67,6 +69,7 @@ export function TransactionModal({
         method: transaction ? "PUT" : "POST",
         body: JSON.stringify({
           ...payload,
+          amount: parseCurrencyInput(String(payload.amount ?? "")),
           type,
           ...(!transaction && type === "EXPENSE" ? { installments } : {}),
         }),
@@ -138,11 +141,11 @@ export function TransactionModal({
               Valor total (R$)
               <input
                 name="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                defaultValue={transaction?.amount}
-                onChange={(event) => setAmount(Number(event.target.value))}
+                type="text"
+                inputMode="decimal"
+                value={amountText}
+                onChange={(event) => setAmountText(event.target.value.replace(/[^\d.,]/g, ""))}
+                onBlur={() => amount > 0 && setAmountText(formatCurrencyInput(amount))}
                 placeholder="0,00"
                 required
               />
