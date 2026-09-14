@@ -41,7 +41,7 @@ Erros de validação também podem incluir `issues`. Datas são enviadas em ISO 
 | `/transfers` | Listar, criar, editar e excluir transferências entre contas |
 | `/cards` | Gerenciar cartões, consultar faturas, pagar e desfazer pagamento |
 | `/categories` | Gerenciar categorias de receita e despesa |
-| `/transactions` | Consultar com filtros/paginação, criar, editar e excluir lançamentos |
+| `/transactions` | Consultar com filtros/paginação, criar, editar e excluir lançamentos; ocorrências recorrentes excluídas são canceladas para não serem recriadas |
 | `/recurrences` | Gerenciar regras recorrentes e materializar ocorrências futuras |
 | `/budgets` | Gerenciar orçamentos mensais e copiar para outro mês |
 | `/goals` | Gerenciar metas e seus aportes |
@@ -55,6 +55,8 @@ Erros de validação também podem incluir `issues`. Datas são enviadas em ISO 
 | `DELETE` | `/transactions/:id/attachments/:attachmentId` | Excluir anexo e arquivo privado |
 
 São aceitos PDF, PNG, JPEG e WebP, com limite de 5 MB por arquivo e cinco anexos por lançamento.
+
+Ao executar `DELETE /transactions/:id`, um lançamento comum é removido. Se o lançamento tiver sido gerado por uma recorrência, ele é marcado como `CANCELED` e deixa de aparecer na listagem padrão; isso preserva a exceção da ocorrência e impede sua recriação automática. Para consultar esses registros, use o filtro `status=CANCELED`.
 
 ## Análise e produtividade
 
