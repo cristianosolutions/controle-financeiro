@@ -36,10 +36,15 @@ export function TransactionsView({
   onChanged,
 }: Props) {
   const [attachmentTransaction, setAttachmentTransaction] = useState<Transaction | null>(null);
+  const [error, setError] = useState("");
   async function remove(id: string) {
-    if (confirm("Excluir este lançamento?")) {
+    if (!confirm("Excluir este lançamento?")) return;
+    try {
+      setError("");
       await api(`/transactions/${id}`, { method: "DELETE" });
       onChanged();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível excluir o lançamento");
     }
   }
   return (
@@ -56,6 +61,7 @@ export function TransactionsView({
           <Plus size={18} /> Novo lançamento
         </button>
       </div>
+      {error && <div className="form-error spaced">{error}</div>}
       <div className="table-card">
         <div className="transaction-table table-header">
           <span>Descrição</span>

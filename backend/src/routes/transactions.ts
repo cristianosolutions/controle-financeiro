@@ -91,6 +91,7 @@ transactionsRouter.get("/", async (request, response) => {
     ...(query.categoryId && { categoryId: query.categoryId }),
     ...((query.from || query.to || query.status === "OVERDUE") && { date: dateFilter }),
     ...(query.status && { status: query.status === "OVERDUE" ? "PENDING" as const : query.status }),
+    ...(!query.status && { status: { not: "CANCELED" as const } }),
   };
   const [items, total] = await Promise.all([
     prisma.transaction.findMany({ where, include: { category: true, account: true, card: true, attachments: { select: attachmentSelect, orderBy: { createdAt: "desc" } } }, orderBy: [{ date: "desc" }, { createdAt: "desc" }], skip: (query.page - 1) * query.limit, take: query.limit }),
@@ -185,9 +186,15 @@ transactionsRouter.put("/:id", async (request, response) => {
 
 transactionsRouter.delete("/:id", async (request, response) => {
   const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+  const transaction = await prisma.transaction.findFirst({ where: { id, userId: request.userId! }, select: { recurringId: true } });
+  if (!transaction) throw new AppError("Transação não encontrada", 404);
   const attachments = await prisma.transactionAttachment.findMany({ where: { transactionId: id, userId: request.userId! }, select: { storedName: true } });
-  const result = await prisma.transaction.deleteMany({ where: { id, userId: request.userId! } });
-  if (!result.count) throw new AppError("Transação não encontrada", 404);
+  if (transaction.recurringId) {
+    await prisma.transaction.update({ where: { id }, data: { status: "CANCELED" } });
+    await prisma.transactionAttachment.deleteMany({ where: { transactionId: id, userId: request.userId! } });
+  } else {
+    await prisma.transaction.delete({ where: { id } });
+  }
   await Promise.all(attachments.map((attachment) => removeStoredAttachment(attachment.storedName)));
   response.status(204).send();
 });
