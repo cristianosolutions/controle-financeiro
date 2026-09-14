@@ -1,6 +1,7 @@
 import { Pause, Pencil, Play, Plus, Repeat2, Trash2 } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { api } from "../lib/api";
+import { formatCurrencyInput, parseCurrencyInput } from "../lib/currency-input";
 import { sortByLabel } from "../lib/sorting";
 import { paymentMethodLabels, recurrenceFrequencyLabels, type Account, type Category, type CreditCard, type PaymentMethod, type RecurrenceFrequency, type RecurringTransaction, type TransactionType } from "../types";
 
@@ -46,9 +47,30 @@ export function RecurrencesView({ items: unsortedItems, categories: unsortedCate
     setError("");
   }
 
+  useEffect(() => {
+    if (!formOpen) return;
+    const input = document.querySelector<HTMLInputElement>('.recurrence-form input[name="amount"]');
+    if (!input) return;
+    input.type = "text";
+    input.inputMode = "decimal";
+    input.value = input.value ? formatCurrencyInput(input.value) : "";
+    const handleInput = () => { input.value = input.value.replace(/[^\d.,]/g, ""); };
+    const handleBlur = () => {
+      const amount = parseCurrencyInput(input.value);
+      if (amount > 0) input.value = formatCurrencyInput(amount);
+    };
+    input.addEventListener("input", handleInput);
+    input.addEventListener("blur", handleBlur);
+    return () => {
+      input.removeEventListener("input", handleInput);
+      input.removeEventListener("blur", handleBlur);
+    };
+  }, [formOpen]);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const raw = Object.fromEntries(new FormData(event.currentTarget).entries());
+    raw.amount = String(parseCurrencyInput(typeof raw.amount === "string" ? raw.amount : ""));
     try {
       await api(`/recurrences${editing ? `/${editing.id}` : ""}`, {
         method: editing ? "PUT" : "POST",
