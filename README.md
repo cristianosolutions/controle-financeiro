@@ -4,7 +4,7 @@
 
 ### Controle financeiro pessoal, simples e visual
 
-Organize receitas e despesas, acompanhe seu saldo e entenda para onde seu dinheiro está indo — em qualquer dispositivo.
+Organize receitas e despesas, acompanhe seu saldo e entenda para onde seu dinheiro está indo.
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -14,44 +14,30 @@ Organize receitas e despesas, acompanhe seu saldo e entenda para onde seu dinhei
 
 </div>
 
----
+## Sobre a aplicação
 
-## Sobre o projeto
+O **Control Finance** ajuda a organizar as finanças pessoais em um só lugar. Cada usuário tem seu próprio cadastro, contas, categorias e movimentações. A interface se adapta ao computador, tablet e celular.
 
-O **Control Finance** é uma aplicação web responsiva para gestão financeira pessoal. Cada usuário possui um ambiente privado para registrar movimentações, criar categorias, consultar relatórios e acompanhar a evolução mensal de suas finanças.
+Os registros são feitos manualmente ou importados de uma planilha CSV. A aplicação não se conecta automaticamente a bancos ou administradoras de cartão.
 
-O projeto é dividido em uma API REST e uma interface React, com autenticação JWT, persistência em PostgreSQL e isolamento de dados por usuário.
+## O que você pode fazer
 
-## Principais recursos
+- Registrar receitas e despesas e acompanhar o resumo de cada mês.
+- Organizar contas e carteiras e transferir valores entre elas.
+- Cadastrar cartões, acompanhar faturas e registrar compras parceladas.
+- Criar categorias e compromissos recorrentes.
+- Definir limites de gastos por categoria e metas de economia.
+- Consultar previsões, relatórios e avisos de vencimentos.
+- Importar lançamentos de CSV, anexar comprovantes e exportar relatórios.
+- Gerenciar sua senha, foto de perfil e sessões de acesso.
 
-- **Dashboard mensal:** indicadores, comparação com o mês anterior, evolução diária e despesas por categoria.
-- **Contas e carteiras:** saldos por conta, conta principal, tipos de conta e histórico individual.
-- **Transferências internas:** movimentação entre contas sem alterar o patrimônio total.
-- **Cartões e faturas:** limites, fechamento, vencimento, compras por ciclo e pagamento de faturas.
-- **Receitas e despesas:** criação, edição, exclusão, filtros, paginação e situação financeira.
-- **Recorrências e parcelamentos:** compromissos periódicos e compras divididas em parcelas.
-- **Categorias personalizadas:** criação e edição de nome, tipo e cor, com vínculo às movimentações.
-- **Orçamentos mensais:** limites por categoria e acompanhamento de gastos pagos e pendentes.
-- **Metas e previsão:** aportes, prazos e projeção dos próximos meses.
-- **Relatórios:** análises comparativas, filtros, CSV e impressão em PDF.
-- **Importação CSV:** prévia, validação por linha e proteção contra duplicidades.
-- **Comprovantes:** anexos privados em PDF ou imagem nos lançamentos.
-- **Administração e auditoria:** usuários, perfis, status e histórico de operações sensíveis.
-- **Segurança:** senhas fortes, sessões revogáveis, recuperação administrativa e limite de tentativas.
-- **Layout responsivo:** experiência adaptada para computador, tablet e celular.
-- **Entrada assistida:** iniciais padronizadas, sugestões de acentuação em português, listas nominais em ordem alfabética e campos monetários no formato brasileiro com duas casas decimais. Observações não recebem capitalização assistida; a API ainda remove espaços nas extremidades, conforme a pendência QA-03.
+## Comece por aqui
 
-- **Aplicativo instalável (PWA):** pode ser adicionado à tela inicial em navegadores compatíveis, informa perda de conexão e oferece uma página segura de indisponibilidade sem armazenar dados financeiros no cache.
-- **Acessibilidade:** navegação por teclado, foco visível, atalhos, diálogos acessíveis e respeito à preferência de movimento reduzido.
-- **Central de avisos:** reúne lançamentos pendentes, faturas próximas ou vencidas, orçamentos no limite e prazos de metas, com contador de não lidos e acesso direto ao item relacionado.
-
-Consulte o [índice da documentação](docs/README.md), a [documentação técnica](README_TECNICO.md), o [escopo profissional](docs/ESCOPO_PROFISSIONAL.md), a [referência da API](docs/API.md) e o [guia de operação, backup e implantação](docs/OPERACAO.md).
-
-## Estado da validação
-
-Na rodada de QA de 28/09/2026, os 73 testes existentes, os builds de frontend/backend e a validação estática de PWA/acessibilidade passaram. Os 23 cenários adicionais de API tiveram 19 aprovações e quatro falhas: exclusão de compra de fatura paga mantendo débito sem fatura visível, erro 500 ao excluir conta com pagamento de fatura, erro 500 para JSON malformado e remoção de espaços nas extremidades de observações.
-
-A aprovação integral está pendente dessas correções e dos testes visuais/interativos, que não puderam ser executados por ausência de navegador conectado. Consulte o [relatório de QA](docs/QA_2026-09-28.md) e o [guia de testes](docs/TESTES.md). As imagens abaixo ilustram a interface e não constituem evidência dessa rodada.
+| Quero… | Onde encontrar |
+| --- | --- |
+| Entender como usar a aplicação | [Guia de uso](docs/GUIA_DE_USO.md) |
+| Baixar e executar no meu computador | [Instalação local](docs/EXECUCAO_LOCAL.md) |
+| Conhecer as ferramentas utilizadas | [Tecnologias](#tecnologias) |
 
 ## Interface
 
@@ -109,115 +95,11 @@ A aprovação integral está pendente dessas correções e dos testes visuais/in
 
 Outras bibliotecas importantes: **Zod**, **JWT**, **bcryptjs**, **Helmet**, **Lucide React**, **CORS** e **Supertest**.
 
-## Arquitetura
+## Executar no computador
 
-```text
-controle-financeiro/
-├── backend/
-│   ├── prisma/          # Schema e migrations
-│   ├── generated/       # Prisma Client gerado
-│   └── src/             # API, rotas e middlewares
-├── frontend/
-│   └── src/             # Componentes, estilos e cliente HTTP
-├── docs/screenshots/    # Imagens da aplicação
-└── README.md            # Apresentação e início rápido
-```
+Você pode executar a aplicação com **Docker Desktop** ou instalar **Node.js e PostgreSQL** separadamente. O [guia de instalação local](docs/EXECUCAO_LOCAL.md) explica as duas opções, desde o download até a criação da primeira conta.
 
-```text
-React + Vite  ──HTTP/JSON──▶  Express + Prisma  ──▶  PostgreSQL
-     :5173                       :3333
-```
-
-## Como executar
-
-> Para executar toda a aplicação com Docker, configurar backups e acompanhar os health checks, consulte o [guia de operação](docs/OPERACAO.md).
-
-### Pré-requisitos
-
-- [Node.js 22.12 ou superior](https://nodejs.org/)
-- [PostgreSQL](https://www.postgresql.org/download/)
-- [Git](https://git-scm.com/downloads)
-
-### 1. Clone o projeto
-
-```bash
-git clone https://github.com/cristianosolutions/controle-financeiro.git
-cd controle-financeiro
-```
-
-### 2. Configure o backend
-
-Crie no PostgreSQL um banco chamado `controle_financeiro`. Depois:
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-```
-
-Configure o arquivo `backend/.env`:
-
-```env
-DATABASE_URL="postgresql://postgres:SUA_SENHA@localhost:5432/controle_financeiro?schema=public"
-JWT_SECRET="uma-chave-local-com-pelo-menos-32-caracteres"
-PORT=3333
-NODE_ENV="development"
-CORS_ORIGIN="http://localhost:5173"
-```
-
-Prepare o banco e inicie a API:
-
-```bash
-npx prisma migrate deploy
-npm run prisma:generate
-npm run dev
-```
-
-### 3. Configure o frontend
-
-Em outro terminal:
-
-```bash
-cd frontend
-npm install
-cp .env.example .env
-npm run dev
-```
-
-Acesse **http://localhost:5173**. A API estará disponível em **http://localhost:3333** e poderá ser verificada em `/health`.
-
-Para habilitar a administração em uma instalação nova, cadastre normalmente a primeira conta e, no terminal do backend, promova esse usuário de forma explícita:
-
-```bash
-npm run admin:promote -- seu-email@exemplo.com --confirm
-```
-
-O comando não cria senhas padrão, ativa somente uma conta já cadastrada e registra a promoção na auditoria.
-
-> No PowerShell, use `Copy-Item .env.example .env` para copiar os arquivos de ambiente. Caso scripts `.ps1` estejam bloqueados, execute `npm.cmd` e `npx.cmd`.
-
-## Scripts úteis
-
-| Comando | Pasta | Descrição |
-|---|---|---|
-| `npm run dev` | `backend` | Inicia a API com recarregamento automático |
-| `npm test` | `backend` | Executa os testes automatizados |
-| `npm run typecheck` | `backend` | Valida os tipos sem gerar arquivos |
-| `npm run prisma:generate` | `backend` | Gera o Prisma Client |
-| `npm run prisma:migrate` | `backend` | Cria e aplica uma migration em desenvolvimento |
-| `npm run admin:promote -- email --confirm` | `backend` | Promove com segurança o administrador inicial |
-| `npm run dev` | `frontend` | Inicia a interface com Vite |
-| `npm test` | `frontend` | Executa os testes unitários da interface |
-| `npm run test:pwa` | `frontend` | Valida PWA e requisitos estáticos de acessibilidade |
-| `npm run build` | `frontend` | Valida e gera o build de produção |
-| `npx tsx scripts/qa-api.ts` | `backend` | Executa o QA adicional com dados temporários; requer os servidores locais ativos |
-
-## Segurança
-
-- Não envie arquivos `.env`, senhas, tokens ou backups ao GitHub.
-- Use um `JWT_SECRET` forte e exclusivo em produção.
-- Configure corretamente o CORS, backups e HTTPS antes de armazenar dados reais.
-- O token do frontend fica limitado à sessão da aba; fechar o navegador exige um novo login, embora a sessão emitida pela API continue revogável e tenha validade máxima de sete dias.
+Depois de iniciar, abra o endereço indicado no navegador, faça seu cadastro e siga o [guia de uso](docs/GUIA_DE_USO.md).
 
 ---
 

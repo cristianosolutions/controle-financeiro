@@ -20,3 +20,15 @@ backups
 .DS_Store
 Thumbs.db
 .vscode
+
+# Documentação interna e evidências de QA: manter somente no computador
+/README_TECNICO.md
+/backend/README.md
+/frontend/README.md
+/docs/README.md
+/docs/API.md
+/docs/ESCOPO_PROFISSIONAL.md
+/docs/OPERACAO.md
+/docs/TESTES.md
+/docs/QA_*.md
+/docs/QA_*.json
