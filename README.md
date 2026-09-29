@@ -39,13 +39,19 @@ O projeto é dividido em uma API REST e uma interface React, com autenticação 
 - **Administração e auditoria:** usuários, perfis, status e histórico de operações sensíveis.
 - **Segurança:** senhas fortes, sessões revogáveis, recuperação administrativa e limite de tentativas.
 - **Layout responsivo:** experiência adaptada para computador, tablet e celular.
-- **Entrada assistida:** iniciais padronizadas, sugestões de acentuação em português, listas nominais em ordem alfabética e campos monetários no formato brasileiro com duas casas decimais. Campos de observação preservam exatamente a escrita informada pelo usuário.
+- **Entrada assistida:** iniciais padronizadas, sugestões de acentuação em português, listas nominais em ordem alfabética e campos monetários no formato brasileiro com duas casas decimais. Observações não recebem capitalização assistida; a API ainda remove espaços nas extremidades, conforme a pendência QA-03.
 
 - **Aplicativo instalável (PWA):** pode ser adicionado à tela inicial em navegadores compatíveis, informa perda de conexão e oferece uma página segura de indisponibilidade sem armazenar dados financeiros no cache.
 - **Acessibilidade:** navegação por teclado, foco visível, atalhos, diálogos acessíveis e respeito à preferência de movimento reduzido.
 - **Central de avisos:** reúne lançamentos pendentes, faturas próximas ou vencidas, orçamentos no limite e prazos de metas, com contador de não lidos e acesso direto ao item relacionado.
 
-Consulte também o [escopo profissional](docs/ESCOPO_PROFISSIONAL.md), a [referência da API](docs/API.md) e o [guia de operação, backup e implantação](docs/OPERACAO.md).
+Consulte o [índice da documentação](docs/README.md), a [documentação técnica](README_TECNICO.md), o [escopo profissional](docs/ESCOPO_PROFISSIONAL.md), a [referência da API](docs/API.md) e o [guia de operação, backup e implantação](docs/OPERACAO.md).
+
+## Estado da validação
+
+Na rodada de QA de 28/09/2026, os 73 testes existentes, os builds de frontend/backend e a validação estática de PWA/acessibilidade passaram. Os 23 cenários adicionais de API tiveram 19 aprovações e quatro falhas: exclusão de compra de fatura paga mantendo débito sem fatura visível, erro 500 ao excluir conta com pagamento de fatura, erro 500 para JSON malformado e remoção de espaços nas extremidades de observações.
+
+A aprovação integral está pendente dessas correções e dos testes visuais/interativos, que não puderam ser executados por ausência de navegador conectado. Consulte o [relatório de QA](docs/QA_2026-09-28.md) e o [guia de testes](docs/TESTES.md). As imagens abaixo ilustram a interface e não constituem evidência dessa rodada.
 
 ## Interface
 
@@ -204,6 +210,7 @@ O comando não cria senhas padrão, ativa somente uma conta já cadastrada e reg
 | `npm test` | `frontend` | Executa os testes unitários da interface |
 | `npm run test:pwa` | `frontend` | Valida PWA e requisitos estáticos de acessibilidade |
 | `npm run build` | `frontend` | Valida e gera o build de produção |
+| `npx tsx scripts/qa-api.ts` | `backend` | Executa o QA adicional com dados temporários; requer os servidores locais ativos |
 
 ## Segurança
 

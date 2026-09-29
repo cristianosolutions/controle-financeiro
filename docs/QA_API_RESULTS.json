@@ -1,0 +1,102 @@
+{
+  "runAt": "2026-09-29T00:40:28.042Z",
+  "cleanup": "confirmed",
+  "results": [
+    {
+      "name": "Health e readiness reais",
+      "status": "PASS"
+    },
+    {
+      "name": "Frontend HTTP disponível",
+      "status": "PASS"
+    },
+    {
+      "name": "Leitura de todos os módulos",
+      "status": "PASS"
+    },
+    {
+      "name": "Bloqueio administrativo para usuário comum",
+      "status": "PASS"
+    },
+    {
+      "name": "CRUD de lançamento e impacto no saldo",
+      "status": "PASS"
+    },
+    {
+      "name": "Transferência conserva patrimônio e estorno restaura saldos",
+      "status": "PASS"
+    },
+    {
+      "name": "Isolamento de contas, categorias e lançamentos",
+      "status": "PASS"
+    },
+    {
+      "name": "Rejeição de valor negativo, categoria incompatível e status inválido",
+      "status": "PASS"
+    },
+    {
+      "name": "Orçamento: criação, cópia e exclusão",
+      "status": "PASS"
+    },
+    {
+      "name": "Meta: aporte debita conta e exclusão do aporte estorna",
+      "status": "PASS"
+    },
+    {
+      "name": "Parcelamento preserva total de centavos",
+      "status": "PASS"
+    },
+    {
+      "name": "Fatura: pagamento, prevenção de duplicidade e estorno",
+      "status": "PASS"
+    },
+    {
+      "name": "Importação: prévia, gravação e proteção contra duplicidade",
+      "status": "PASS"
+    },
+    {
+      "name": "Recorrência materializa sem duplicar",
+      "status": "PASS"
+    },
+    {
+      "name": "Anexo: upload, download privado e exclusão",
+      "status": "PASS"
+    },
+    {
+      "name": "Observações preservam espaços informados (contrato README)",
+      "status": "FAIL",
+      "detail": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'texto livre'\n- '  texto livre  '\n"
+    },
+    {
+      "name": "Fatura paga não pode perder compras mantendo débito integral",
+      "status": "FAIL",
+      "detail": "DELETE=204; faturas=0; saldo=900 (antes=1000)"
+    },
+    {
+      "name": "Conta com pagamento de fatura deve retornar erro de negócio ao excluir",
+      "status": "FAIL",
+      "detail": "expected 422 \"Unprocessable Entity\", got 500 \"Internal Server Error\""
+    },
+    {
+      "name": "Foto de perfil: upload, leitura e remoção",
+      "status": "PASS"
+    },
+    {
+      "name": "JSON malformado deve retornar 400, não falha interna",
+      "status": "FAIL",
+      "detail": "expected 400 \"Bad Request\", got 500 \"Internal Server Error\""
+    },
+    {
+      "name": "Administração: cadastro, edição, recuperação, auditoria e exclusão",
+      "status": "PASS"
+    },
+    {
+      "name": "Troca de senha exige senha atual e permite novo login",
+      "status": "PASS"
+    },
+    {
+      "name": "Logout revoga sessão",
+      "status": "PASS"
+    }
+  ]
+}

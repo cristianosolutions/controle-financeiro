@@ -14,7 +14,7 @@ Edite `.env.docker` e use senhas fortes. Depois execute:
 
 ```powershell
 docker compose --env-file .env.docker up -d --build
-docker compose ps
+docker compose --env-file .env.docker ps
 ```
 
 - Aplicação: `http://localhost:8080`
@@ -25,23 +25,25 @@ As migrations são aplicadas automaticamente quando o container do backend inici
 
 Em uma instalação nova, cadastre a primeira conta pela interface e promova-a sem criar credenciais padrão:
 
+A imagem de runtime contém o JavaScript compilado, mas não a pasta `src` usada pelo script npm. Dentro do container, execute a versão compilada:
+
 ```powershell
-docker compose --env-file .env.docker exec backend npm run admin:promote -- administrador@exemplo.com --confirm
+docker compose --env-file .env.docker exec backend node dist/src/scripts/promote-admin.js administrador@exemplo.com --confirm
 ```
 
-A promoção é idempotente e fica registrada na trilha de auditoria.
+A promoção é idempotente e fica registrada na trilha de auditoria. O comando `npm run admin:promote` aplica-se à instalação local com código-fonte disponível.
 
 Para acompanhar logs:
 
 ```powershell
-docker compose logs -f backend
-docker compose logs -f database
+docker compose --env-file .env.docker logs -f backend
+docker compose --env-file .env.docker logs -f database
 ```
 
 Para encerrar sem apagar dados:
 
 ```powershell
-docker compose down
+docker compose --env-file .env.docker down
 ```
 
 Não use `docker compose down -v` em um ambiente com dados importantes, pois a opção `-v` remove os volumes.
@@ -58,6 +60,14 @@ Orquestradores e monitores devem usar `/health/ready` para decidir se a API pode
 
 ## Backup
 
+Os scripts PowerShell chamam `docker compose` sem `--env-file`. Antes de usá-los, configure o arquivo de ambiente para a sessão atual (a partir da raiz do projeto):
+
+```powershell
+$env:COMPOSE_ENV_FILES = (Resolve-Path .env.docker).Path
+```
+
+Essa configuração também permite executar os comandos de logs, `ps` e `down` sem repetir `--env-file`; alternativamente, informe `--env-file .env.docker` em cada comando manual.
+
 Com os containers em execução:
 
 ```powershell
@@ -67,7 +77,7 @@ Com os containers em execução:
 O resultado fica em `backups/AAAAmmdd-HHmmss/` e contém:
 
 - `database.dump`: banco PostgreSQL em formato próprio do `pg_dump`;
-- `uploads/`: comprovantes anexados;
+- `uploads/`: comprovantes anexados e fotos de perfil;
 - `manifest.json`: data e conteúdo do backup.
 
 Copie backups importantes para um local externo e criptografado. Faça pelo menos um backup diário e mantenha versões semanais e mensais.
@@ -87,15 +97,15 @@ O script aceita somente diretórios dentro da pasta `backups` do projeto. Ao ter
 ```powershell
 git pull
 docker compose --env-file .env.docker up -d --build
-docker compose ps
+docker compose --env-file .env.docker ps
 ```
 
 Antes de atualizar em produção, gere um backup. Nunca altere migrations já aplicadas; novas mudanças devem criar uma nova migration.
 
 ### Dependências com versão controlada
 
-- `pg` permanece fixado em `8.18.0` enquanto o aviso de concorrência do `@prisma/adapter-pg` estiver aberto no [Prisma #29407](https://github.com/prisma/prisma/issues/29407). Não atualize isoladamente para `pg` 9.
-- `deepmerge-ts` usa override `8.0.0`, versão que corrige o [GHSA-ggr8-5vv4-36mx](https://github.com/advisories/GHSA-ggr8-5vv4-36mx), sem regredir o Prisma 7.
+- O manifesto atual fixa `pg` em `8.18.0` e o override de `deepmerge-ts` em `8.0.0`. Consulte `backend/package.json` e o lockfile como fonte das versões efetivamente instaladas.
+- Não altere essas versões sem validar a compatibilidade do adapter PostgreSQL e repetir as verificações abaixo.
 - Toda atualização deve passar por `npm audit`, testes, typecheck, Prisma validate e build antes da publicação.
 
 ## CI no GitHub
@@ -108,3 +118,11 @@ O workflow `.github/workflows/ci.yml` executa em pushes e pull requests:
 4. auditoria de dependências, tipagem, testes e build do backend;
 5. auditoria de dependências, testes unitários, validação PWA e build do frontend;
 6. construção das duas imagens Docker.
+
+O workflow não executa o roteiro adicional `backend/scripts/qa-api.ts` nem QA visual em navegador. Um CI aprovado não elimina as falhas registradas no [relatório de 28/09/2026](QA_2026-09-28.md).
+
+## Verificações antes de disponibilizar uma versão
+
+Consulte o [guia de testes](TESTES.md), execute o QA em banco descartável e confira o relatório de falhas conhecidas. A rodada de 28/09/2026 não validou backup/restauração, carga, concorrência ou instalação da PWA; essas operações não devem ser apresentadas como homologadas por aquela rodada.
+
+`VITE_API_URL` é incorporada durante o build do frontend. Em um servidor acessado por outros dispositivos, configure uma URL que esses dispositivos consigam alcançar e ajuste `CORS_ORIGIN` para a origem real da interface. Depois reconstrua a imagem do frontend. `localhost` refere-se ao dispositivo em que o navegador está aberto.
